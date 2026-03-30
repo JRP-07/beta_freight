@@ -87,11 +87,99 @@
         </div>
     </section>
 
-    <script>
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithCustomToken, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithCredential } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        function handleCredentialResponse(response) {
-            console.log("Token recibido en el nuevo diseño:", response.credential);
-        }
+        // Firebase Configuration
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // Autenticación inicial obligatoria (Regla 3)
+        const initAuth = async () => {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token).catch(() => signInAnonymously(auth));
+            } else {
+                await signInAnonymously(auth);
+            }
+        };
+        initAuth();
+
+        // Referencias DOM
+        const registrationForm = document.getElementById('registrationForm');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // Función para mostrar mensajes
+        const showToast = (msg, isError = false) => {
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-10 left-1/2 -translate-x-1/2 ${isError ? 'bg-rose-500' : 'bg-slate-900'} text-white px-6 py-3 rounded-2xl shadow-2xl text-sm font-bold animate-bounce z-50`;
+            toast.innerText = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        };
+
+        // Manejo de Registro Manual
+        registrationForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
+            const pass = document.getElementById('regPass').value;
+
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Procesando...";
+
+            try {
+                // 1. Crear usuario en Auth
+                const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+                const user = userCredential.user;
+
+                // 2. Guardar en Firestore (Regla 1: Path estricto)
+                if (user) {
+                    await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'profile'), {
+                        fullName: name,
+                        email: email,
+                        createdAt: new Date().toISOString()
+                    });
+                    
+                    showToast("✓ Usuario registrado en Firebase");
+                    setTimeout(() => window.location.href = 'dashboard.html', 1500);
+                }
+            } catch (error) {
+                console.error(error);
+                showToast("Error: " + error.message, true);
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Comenzar ahora";
+            }
+        });
+
+        // Manejo de Google Auth
+        window.handleCredentialResponse = async (response) => {
+            try {
+                const credential = GoogleAuthProvider.credential(response.credential);
+                const result = await signInWithCredential(auth, credential);
+                const user = result.user;
+
+                if (user) {
+                    // Guardar perfil si es nuevo
+                    await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'profile'), {
+                        fullName: user.displayName,
+                        email: user.email,
+                        photo: user.photoURL,
+                        lastLogin: new Date().toISOString()
+                    }, { merge: true });
+
+                    showToast("✓ Bienvido " + user.displayName);
+                    setTimeout(() => window.location.href = 'dashboard.html', 1500);
+                }
+            } catch (error) {
+                showToast("Error Google: " + error.message, true);
+            }
+        };
     </script>
 </body>
 </html>
