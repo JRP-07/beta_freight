@@ -74,9 +74,39 @@
         </div>
     </section>
     <script>
+    function redirectToDashboard() {
+            // Reemplaza 'dashboard.html' con la URL real de tu página de destino
+            window.location.href = 'dashboard.html';
+        }
 
+        // Manejador para el login de Google
         function handleCredentialResponse(response) {
-            console.log("Token recibido en el nuevo diseño:", response.credential);
+            console.log("Token recibido:", response.credential);
+            
+            // Simular un pequeño retraso para mostrar éxito antes de redirigir
+            const toast = document.createElement('div');
+            toast.className = "fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-2xl shadow-2xl text-sm font-bold animate-bounce";
+            toast.innerText = "✓ Autenticado. Redirigiendo...";
+            document.body.appendChild(toast);
+            
+            setTimeout(redirectToDashboard, 1500);
+        }
+
+        // Manejador para el formulario manual
+        document.getElementById('registrationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Aquí iría tu lógica de validación o envío a base de datos
+            console.log("Formulario enviado, redirigiendo...");
+            
+            // Redirigir inmediatamente o tras una animación
+            redirectToDashboard();
+        });
+
+        window.onload = function () {
+            if (!window.google) {
+                console.warn("El script de Google no se cargó correctamente.");
+            }
         }
     </script>
 </body>

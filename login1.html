@@ -140,14 +140,29 @@
     </p>
 
     <script>
+        function redirectToDashboard() {
+            window.location.href = 'dashboard.html';
+        }
+
         function handleCredentialResponse(response) {
             const payload = parseJwt(response.credential);
             console.log("Usuario autenticado:", payload.email);
             
             const buttonLabel = document.getElementById('buttonLabel');
             buttonLabel.textContent = '¡Bienvenido ' + payload.given_name + '!';
+            setTimeout(redirectToDashboard, 1500);
             document.getElementById('mainButton').classList.replace('bg-slate-900', 'bg-emerald-600');
         }
+
+        document.getElementById('registrationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Aquí iría tu lógica de validación o envío a base de datos
+            console.log("Formulario enviado, redirigiendo...");
+            
+            // Redirigir inmediatamente o tras una animación
+            redirectToDashboard();
+        });
 
         function parseJwt(token) {
             try {
