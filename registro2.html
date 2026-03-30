@@ -8,33 +8,8 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        /* --- ESTILO 1: OSCURO FUTURISTA (DARK TECH) --- */
-        .theme-dark {
-            background: #020617;
-            font-family: 'Outfit', sans-serif;
-            color: white;
-        }
-        .dark-card {
-            background: rgba(30, 41, 59, 0.5);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
-        }
-        .dark-input {
-            background: rgba(15, 23, 42, 0.8);
-            border: 1px solid rgba(51, 65, 85, 1);
-            color: white;
-        }
-        .dark-input:focus {
-            border-color: #38bdf8;
-            box-shadow: 0 0 0 1px #38bdf8;
-        }
-        .glow-button {
-            background: linear-gradient(90deg, #0ea5e9, #2563eb);
-            box-shadow: 0 0 15px rgba(37, 99, 235, 0.4);
-        }
 
-        /* --- ESTILO 2: SOFT MINIMAL (SOFT UI) --- */
+        /* --- ESTILO  --- */
         .theme-soft {
             background: #f0f2f5;
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -52,6 +27,17 @@
         .soft-button {
             background: #2563eb;
             box-shadow: 6px 6px 12px #ccced0, -6px -6px 12px #ffffff;
+        }
+        .google-btn-wrapper {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+            border-radius: 50%;
+            background: #f0f2f5;
+            box-shadow: 6px 6px 12px #ccced0, -6px -6px 12px #ffffff;
+            min-width: 50px;
+            min-height: 50px;
         }
 
         /* Utilidades generales */
@@ -78,10 +64,23 @@
             </form>
 
             <div class="mt-10 text-center">
-                <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-6">Redes Sociales</p>
-                <div class="flex justify-center gap-4">
-                    <div class="w-12 h-12 rounded-full bg-[#f0f2f5] shadow-[4px_4px_8px_#ccced0,-4px_-4px_8px_#ffffff] flex items-center justify-center cursor-pointer">
-                        <svg class="w-5 h-5 text-slate-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-2.21 5.42-7.84 5.42-4.84 0-8.79-4.01-8.79-8.92s3.95-8.92 8.79-8.92c2.75 0 4.59 1.14 5.64 2.15l2.58-2.48c-1.66-1.55-3.82-2.49-8.22-2.49-6.62 0-12 5.38-12 12s5.38 12 12 12c6.91 0 11.5-4.86 11.5-11.7 0-.79-.08-1.39-.19-1.98h-11.31z"/></svg>
+                <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-6">Conectar con fuente externa</p>
+                
+                <!-- CONFIGURACIÓN DE GOOGLE -->
+                <div id="g_id_onload" 
+                     data-client_id="847237081316-35k296a2frdo97cc54051p21ile688e4.apps.googleusercontent.com" 
+                     data-callback="handleCredentialResponse"
+                     data-auto_prompt="false">
+                </div>
+
+                <!-- BOTÓN DE GOOGLE CON ATRIBUTOS DE LOGO FORZADOS -->
+                <div class="google-btn-wrapper">
+                    <div class="g_id_signin" 
+                         data-type="icon" 
+                         data-shape="circle" 
+                         data-theme="filled_blue" 
+                         data-size="large"
+                         data-logo_alignment="left">
                     </div>
                 </div>
             </div>
@@ -89,18 +88,6 @@
     </section>
 
     <script>
-        function switchTheme(theme) {
-            const dark = document.getElementById('dark-theme');
-            const soft = document.getElementById('soft-theme');
-            
-            if(theme === 'dark') {
-                dark.classList.remove('hidden-section');
-                soft.classList.add('hidden-section');
-            } else {
-                soft.classList.remove('hidden-section');
-                dark.classList.add('hidden-section');
-            }
-        }
 
         function handleCredentialResponse(response) {
             console.log("Token recibido en el nuevo diseño:", response.credential);

@@ -8,7 +8,7 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        /* --- ESTILO 1: OSCURO FUTURISTA (DARK TECH) --- */
+        /* --- ESTILO --- */
         .theme-dark {
             background: #020617;
             font-family: 'Outfit', sans-serif;
@@ -34,25 +34,6 @@
             box-shadow: 0 0 15px rgba(37, 99, 235, 0.4);
         }
 
-        /* --- ESTILO 2: SOFT MINIMAL (SOFT UI) --- */
-        .theme-soft {
-            background: #f0f2f5;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-        }
-        .soft-card {
-            background: #f0f2f5;
-            box-shadow: 20px 20px 60px #ccced0, -20px -20px 60px #ffffff;
-            border-radius: 40px;
-        }
-        .soft-input {
-            background: #f0f2f5;
-            box-shadow: inset 6px 6px 12px #ccced0, inset -6px -6px 12px #ffffff;
-            border: none;
-        }
-        .soft-button {
-            background: #2563eb;
-            box-shadow: 6px 6px 12px #ccced0, -6px -6px 12px #ffffff;
-        }
 
         /* Utilidades generales */
         .hidden-section { display: none; }
@@ -60,13 +41,8 @@
 </head>
 <body class="min-h-screen">
 
-    <!-- Selector de Diseño (Solo para previsualizar) -->
-    <div class="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex gap-2 bg-white/10 backdrop-blur p-1 rounded-full border border-white/20">
-        <button onclick="switchTheme('dark')" class="px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all bg-slate-800 text-white">Oscuro Futurista</button>
-        <button onclick="switchTheme('soft')" class="px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all bg-white text-slate-800">Soft Minimal</button>
-    </div>
 
-    <!-- SECCIÓN 1: OSCURO FUTURISTA -->
+    <!-- LOGIN -->
     <section id="dark-theme" class="theme-dark min-h-screen flex flex-col items-center justify-center p-6 transition-all duration-500">
         <div class="dark-card w-full max-w-[420px] rounded-[2rem] p-10">
             <div class="mb-10">
@@ -79,10 +55,12 @@
 
             <form class="space-y-6">
                 <div>
-                    <input type="email" placeholder="Terminal ID (Email)" class="dark-input w-full px-5 py-4 rounded-xl outline-none transition-all">
+                    <label class="text sm font semibold text-slate-300">Correo Electrónico</label>
+                    <input type="email" placeholder="ejemplo@correo.com" class="dark-input w-full px-5 py-4 rounded-xl outline-none transition-all">
                 </div>
                 <div>
-                    <input type="password" placeholder="Access Key" class="dark-input w-full px-5 py-4 rounded-xl outline-none transition-all">
+                    <label class="text sm font semibold text-slate-300">Contraseña</label>
+                    <input type="password" placeholder="••••••••" class="dark-input w-full px-5 py-4 rounded-xl outline-none transition-all">
                 </div>
                 <button type="button" class="glow-button w-full py-4 rounded-xl font-bold uppercase tracking-widest text-sm hover:opacity-90 transition-all active:scale-95">
                     Execute Login
@@ -90,25 +68,12 @@
             </form>
 
             <div class="mt-8 pt-8 border-t border-white/5 flex flex-col items-center gap-4">
-                <div id="g_id_onload" data-client_id="TU_ID.apps.googleusercontent.com" data-callback="handleCredentialResponse"></div>
+                <div id="g_id_onload" data-client_id="847237081316-35k296a2frdo97cc54051p21ile688e4.apps.googleusercontent.com" data-callback="handleCredentialResponse"></div>
                 <div class="g_id_signin" data-type="icon" data-shape="circle" data-theme="filled_blue"></div>
-                <p class="text-xs text-slate-500">¿Sin acceso? <a href="#" class="text-sky-400">Request Entry</a></p>
             </div>
         </div>
     </section>
     <script>
-        function switchTheme(theme) {
-            const dark = document.getElementById('dark-theme');
-            const soft = document.getElementById('soft-theme');
-            
-            if(theme === 'dark') {
-                dark.classList.remove('hidden-section');
-                soft.classList.add('hidden-section');
-            } else {
-                soft.classList.remove('hidden-section');
-                dark.classList.add('hidden-section');
-            }
-        }
 
         function handleCredentialResponse(response) {
             console.log("Token recibido en el nuevo diseño:", response.credential);
