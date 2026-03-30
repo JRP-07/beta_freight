@@ -73,41 +73,95 @@
             </div>
         </div>
     </section>
-    <script>
-    function redirectToDashboard() {
-            // Reemplaza 'dashboard.html' con la URL real de tu página de destino
-            window.location.href = 'dashboard.html';
-        }
+   <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signInWithCustomToken, signInAnonymously, GoogleAuthProvider, signInWithCredential } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Manejador para el login de Google
-        function handleCredentialResponse(response) {
-            console.log("Token recibido:", response.credential);
-            
-            // Simular un pequeño retraso para mostrar éxito antes de redirigir
+        // Configuración de Firebase
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // Autenticación inicial (Regla 3)
+        const initAuth = async () => {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token).catch(() => signInAnonymously(auth));
+            } else {
+                await signInAnonymously(auth);
+            }
+        };
+        initAuth();
+
+        const loginForm = document.getElementById('loginForm');
+        const submitBtn = document.getElementById('submitBtn');
+
+        const showToast = (msg, isError = false) => {
             const toast = document.createElement('div');
-            toast.className = "fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-2xl shadow-2xl text-sm font-bold animate-bounce";
-            toast.innerText = "✓ Autenticado. Redirigiendo...";
+            toast.className = `fixed bottom-10 left-1/2 -translate-x-1/2 ${isError ? 'bg-rose-500' : 'bg-slate-900'} text-white px-6 py-3 rounded-2xl shadow-2xl text-sm font-bold animate-bounce z-50`;
+            toast.innerText = msg;
             document.body.appendChild(toast);
-            
-            setTimeout(redirectToDashboard, 1500);
-        }
+            setTimeout(() => toast.remove(), 3000);
+        };
 
-        // Manejador para el formulario manual
-        document.getElementById('registrationForm').addEventListener('submit', function(e) {
+        // Manejo de Login Manual
+        loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            // Aquí iría tu lógica de validación o envío a base de datos
-            console.log("Formulario enviado, redirigiendo...");
-            
-            // Redirigir inmediatamente o tras una animación
-            redirectToDashboard();
+            const email = document.getElementById('logEmail').value;
+            const pass = document.getElementById('logPass').value;
+
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Verificando...";
+
+            try {
+                // 1. Iniciar sesión en Auth
+                const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+                const user = userCredential.user;
+
+                // 2. Actualizar último acceso en Firestore (Regla 1)
+                if (user) {
+                    await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'profile'), {
+                        lastLogin: new Date().toISOString()
+                    }, { merge: true });
+                    
+                    showToast("✓ Sesión iniciada");
+                    setTimeout(() => window.location.href = 'prototipo.html', 1500);
+                }
+            } catch (error) {
+                console.error(error);
+                let errorMsg = "Error al iniciar sesión";
+                if(error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    errorMsg = "Credenciales incorrectas";
+                }
+                showToast(errorMsg, true);
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Iniciar Sesión";
+            }
         });
 
-        window.onload = function () {
-            if (!window.google) {
-                console.warn("El script de Google no se cargó correctamente.");
+        // Manejo de Google Auth para Login
+        window.handleCredentialResponse = async (response) => {
+            try {
+                const credential = GoogleAuthProvider.credential(response.credential);
+                const result = await signInWithCredential(auth, credential);
+                const user = result.user;
+
+                if (user) {
+                    await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'profile'), {
+                        fullName: user.displayName,
+                        email: user.email,
+                        lastLogin: new Date().toISOString()
+                    }, { merge: true });
+
+                    showToast("✓ Bienvenido " + user.displayName);
+                    setTimeout(() => window.location.href = 'dashboard.html', 1500);
+                }
+            } catch (error) {
+                showToast("Error Google: " + error.message, true);
             }
-        }
+        };
     </script>
 </body>
 </html>
