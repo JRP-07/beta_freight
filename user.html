@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreightFynder | Google Maps Integration</title>
+    <style>
+        :root {
+            --primary: #1a2a6c;
+            --accent: #f2a900;
+            --light: #f4f7f6;
+        }
+
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--light); }
+        
+        nav { background: var(--primary); padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; color: white; }
+        .nav-links button { background: none; border: none; color: white; margin-left: 20px; cursor: pointer; font-size: 1rem; }
+        .active-link { border-bottom: 2px solid var(--accent); }
+
+        .page { display: none; padding: 20px 5%; max-width: 900px; margin: auto; animation: fadeIn 0.4s; }
+        .active-page { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        
+        /* CONTENEDOR DEL MAPA */
+        #map {
+            height: 400px;
+            width: 100%;
+            border-radius: 12px;
+            background: #eee;
+            margin-top: 15px;
+        }
+
+        .truck-list { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        .truck-item { display: flex; align-items: center; padding: 12px; border: 2px solid #eee; border-radius: 10px; cursor: pointer; }
+        .selected-truck { border-color: var(--accent); background: #fffcf0; }
+        
+        .btn-main { background: var(--accent); border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
+        
+        input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; margin-bottom: 10px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="logo"><strong>FREIGHTFYNDER</strong></div>
+    <div class="nav-links">
+        <button id="nav-dash" onclick="showPage('dashboard', this)" class="active-link">Mis Pedidos</button>
+        <button id="nav-order" onclick="showPage('order', this)">+ Nuevo Pedido</button>
+    </div>
+</nav>
+
+<div id="dashboard" class="page active-page">
+    <h1>Rastreo en Tiempo Real</h1>
+    <div class="card">
+        <div id="info-envio">
+            <p>Selecciona "Nuevo Pedido" para trazar una ruta en el mapa.</p>
+        </div>
+        <div id="map"></div>
+    </div>
+</div>
+
+<div id="order" class="page">
+    <div class="card">
+        <h3>1. Tipo de Camión</h3>
+        <div class="truck-list">
+            <div class="truck-item" onclick="setTruck('Contenedor', this)">📦 Contenedor</div>
+            <div class="truck-item" onclick="setTruck('Rastra', this)">🚛 Rastra</div>
+            <div class="truck-item" onclick="setTruck('Furgón', this)">🚐 Furgón</div>
+            <div class="truck-item" onclick="setTruck('Lowboy', this)">🚜 Lowboy</div>
+        </div>
+        
+        <h3 style="margin-top:20px;">2. Direcciones</h3>
+        <input type="text" id="origen" placeholder="Ciudad de Origen (Ej: El Progreso)">
+        <input type="text" id="destino" placeholder="Ciudad de Destino (Ej: San Pedro Sula)">
+        
+        <button class="btn-main" onclick="confirmarPedido()">Confirmar y Ver Mapa</button>
+    </div>
+</div>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>
+
+<script>
+    let map;
+    let marker;
+    let selectedTruck = "";
+
+    // Iniciar el mapa centrado en Honduras
+    function initMap() {
+        const honduras = { lat: 15.5, lng: -87.8 };
+        map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 8,
+            center: honduras,
+            styles: [ { "featureType": "administrative", "stylers": [{ "visibility": "on" }] } ]
+        });
+    }
+
+    function showPage(pageId, btn) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+        document.querySelectorAll('.nav-links button').forEach(b => b.classList.remove('active-link'));
+        document.getElementById(pageId).classList.add('active-page');
+        if(btn) btn.classList.add('active-link');
+    }
+
+    function setTruck(tipo, el) {
+        selectedTruck = tipo;
+        document.querySelectorAll('.truck-item').forEach(i => i.classList.remove('selected-truck'));
+        el.classList.add('selected-truck');
+    }
+
+    function confirmarPedido() {
+        const ori = document.getElementById('origen').value;
+        const des = document.getElementById('destino').value;
+
+        if(!selectedTruck || !ori || !des) return alert("Completa todos los campos.");
+
+        // Actualizar Info en el Panel
+        document.getElementById('info-envio').innerHTML = `
+            <div style="background:#eef2ff; padding:10px; border-radius:8px;">
+                <strong>Unidad:</strong> ${selectedTruck} | <strong>Ruta:</strong> ${ori} a ${des}
+                <br><span style="color:green;">● Localizando conductor más cercano...</span>
+            </div>
+        `;
+
+        // Simular movimiento en el mapa (San Pedro Sula por defecto para el ejemplo)
+        const nuevaPos = { lat: 15.5042, lng: -88.0250 };
+        map.setCenter(nuevaPos);
+        map.setZoom(12);
+
+        if (marker) marker.setMap(null);
+        marker = new google.maps.Marker({
+            position: nuevaPos,
+            map: map,
+            title: "Tu Flete está aquí",
+            icon: 'https://maps.google.com/mapfiles/kml/shapes/truck.png'
+        });
+
+        alert("¡Pedido confirmado! Redirigiendo al mapa...");
+        showPage('dashboard', document.getElementById('nav-dash'));
+    }
+</script>
+
+</body>
+</html>
