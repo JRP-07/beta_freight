@@ -3,183 +3,217 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Variantes de Diseño | Freight</title>
+    <title>Crear Cuenta | Freight</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Nueva librería de Google Identity Services -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-
-        /* --- ESTILO  --- */
-        .theme-soft {
-            background: #f0f2f5;
+        body {
             font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+            background-image: radial-gradient(at 0% 0%, hsla(210,100%,93%,1) 0, transparent 50%), 
+                              radial-gradient(at 50% 0%, hsla(220,100%,95%,1) 0, transparent 50%), 
+                              radial-gradient(at 100% 0%, hsla(215,100%,92%,1) 0, transparent 50%);
         }
-        .soft-card {
-            background: #f0f2f5;
-            box-shadow: 20px 20px 60px #ccced0, -20px -20px 60px #ffffff;
-            border-radius: 40px;
+        .login-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.05);
         }
-        .soft-input {
-            background: #f0f2f5;
-            box-shadow: inset 6px 6px 12px #ccced0, inset -6px -6px 12px #ffffff;
-            border: none;
+        .input-group input {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .soft-button {
-            background: #2563eb;
-            box-shadow: 6px 6px 12px #ccced0, -6px -6px 12px #ffffff;
+        .input-group input:focus {
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
         }
-        .google-btn-wrapper {
-            display: inline-flex;
+        .custom-loader {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff;
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            display: none;
+            animation: rotation 1s linear infinite;
+        }
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .logo-container {
+            width: 48px;
+            height: 48px;
+            overflow: hidden;
+            display: flex;
             align-items: center;
             justify-content: center;
-            padding: 8px;
-            border-radius: 50%;
-            background: #f0f2f5;
-            box-shadow: 6px 6px 12px #ccced0, -6px -6px 12px #ffffff;
-            min-width: 50px;
-            min-height: 50px;
         }
-
-        /* Utilidades generales */
-        .hidden-section { display: none; }
+        .logo-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
     </style>
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen flex flex-col items-center justify-center p-6 py-12">
 
-    <section id="soft-theme" class="theme-soft hidden-section min-h-screen flex flex-col items-center justify-center p-6 transition-all duration-500">
-        <div class="soft-card w-full max-w-[460px] p-12">
-            <div class="text-center mb-10">
-                <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">Únete a Freight</h2>
-                <p class="text-slate-500 text-sm font-medium mt-1">Crea una cuenta con un toque suave.</p>
+    <!-- Brand Header -->
+    <div class="mb-8 text-center">
+        <div class="flex items-center justify-center mb-4">
+            <div class="logo-container bg-white rounded-xl shadow-sm p-1 border border-slate-100">
+                <!-- ASEGÚRATE DE QUE ESTA RUTA SEA CORRECTA O USA UNA URL ABSOLUTA -->
+                <img src="recursos/logo_blanco.jpeg" alt="Logo" class="logo-img" onerror="this.src='https://via.placeholder.com/48?text=F'">
+            </div>
+            <span class="ml-3 text-xl font-bold text-slate-900 tracking-tight">Freight</span>
+        </div>
+    </div>
+
+    <!-- Main Card -->
+    <div class="login-card w-full max-w-[480px] rounded-3xl p-8 md:p-10">
+        <div class="mb-8 text-center md:text-left">
+            <h2 class="text-2xl font-bold text-slate-900">Crear una cuenta</h2>
+            <p class="text-slate-500 mt-1 text-sm">Regístrate para comenzar a gestionar tu logística.</p>
+        </div>
+
+        <form id="authForm" class="space-y-4">
+            <div class="input-group">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5 ml-1">Nombre completo</label>
+                <input type="text" id="fullname" name="fullname" required placeholder="Juan Pérez"
+                    class="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-white/50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
             </div>
 
-            <form class="space-y-8">
-                <input type="text" placeholder="Nombre completo" class="soft-input w-full px-6 py-4 rounded-2xl text-slate-700 outline-none placeholder-slate-400">
-                <input type="email" placeholder="Correo electrónico" class="soft-input w-full px-6 py-4 rounded-2xl text-slate-700 outline-none placeholder-slate-400">
-                <input type="password" placeholder="Crear contraseña" class="soft-input w-full px-6 py-4 rounded-2xl text-slate-700 outline-none placeholder-slate-400">
-                
-                <button type="button" class="soft-button w-full py-4 rounded-2xl text-white font-bold shadow-lg hover:brightness-110 transition-all active:scale-95">
-                    Comenzar ahora
-                </button>
-            </form>
+            <div class="input-group">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5 ml-1">Email corporativo</label>
+                <input type="email" id="email" name="email" required placeholder="ejemplo@empresa.com"
+                    class="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-white/50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+            </div>
 
-            <div class="mt-10 text-center">
-                <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-6">Conectar con fuente externa</p>
-                
-                <!-- CONFIGURACIÓN DE GOOGLE -->
-                <div id="g_id_onload" 
-                     data-client_id="847237081316-35k296a2frdo97cc54051p21ile688e4.apps.googleusercontent.com" 
-                     data-callback="handleCredentialResponse"
-                     data-auto_prompt="false">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="input-group">
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5 ml-1">Contraseña</label>
+                    <input type="password" id="password" name="password" required placeholder="••••••••"
+                        class="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-white/50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                 </div>
+                <div class="input-group">
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5 ml-1">Confirmar</label>
+                    <input type="password" id="confirmPassword" required placeholder="••••••••"
+                        class="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-white/50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                </div>
+            </div>
 
-                <!-- BOTÓN DE GOOGLE CON ATRIBUTOS DE LOGO FORZADOS -->
-                <div class="google-btn-wrapper">
-                    <div class="g_id_signin" 
-                         data-type="icon" 
-                         data-shape="circle" 
-                         data-theme="filled_blue" 
-                         data-size="large"
-                         data-logo_alignment="left">
-                    </div>
+            <div id="statusBox" class="hidden animate-in fade-in slide-in-from-top-2 duration-300">
+                <div id="statusContent" class="p-3 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 text-xs font-medium flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span id="statusText">Las contraseñas no coinciden.</span>
                 </div>
+            </div>
+
+            <button type="submit" id="mainButton" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-2xl transition-all shadow-lg shadow-slate-200 flex items-center justify-center gap-3 active:scale-[0.98] mt-2">
+                <span id="buttonLabel">Registrarse con Email</span>
+                <span id="loadingSpinner" class="custom-loader"></span>
+            </button>
+        </form>
+
+        <div class="relative my-8">
+            <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
+            <div class="relative flex justify-center text-xs uppercase"><span class="bg-white px-3 text-slate-400 font-bold tracking-widest">o continuar con</span></div>
+        </div>
+
+        <!-- Google Login Modernizado -->
+        <div class="flex flex-col items-center gap-4">
+            <!-- REEMPLAZA EL CLIENT_ID CON EL TUYO DE GOOGLE CLOUD CONSOLE -->
+            <div id="g_id_onload"
+                 data-client_id="TU_ID_DE_CLIENTE_REAL.apps.googleusercontent.com"
+                 data-callback="handleCredentialResponse"
+                 data-auto_prompt="false">
+            </div>
+            <div class="g_id_signin w-full"
+                 data-type="standard"
+                 data-size="large"
+                 data-theme="outline"
+                 data-text="signup_with"
+                 data-shape="pill"
+                 data-logo_alignment="left"
+                 data-width="400">
             </div>
         </div>
-    </section>
+    </div>
 
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithCustomToken, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithCredential } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    <p class="mt-8 text-slate-500 text-sm">
+        ¿Ya tienes una cuenta? <a href="#" class="text-slate-900 font-bold hover:underline">Inicia sesión</a>
+    </p>
 
-        // Firebase Configuration
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    <script>
+        /**
+         * Maneja la respuesta de éxito de Google
+         * @param {Object} response - Contiene la credencial JWT
+         */
+        function handleCredentialResponse(response) {
+            // 1. Obtener el token JWT
+            const idToken = response.credential;
+            
+            // 2. Decodificar localmente para mostrar feedback (opcional)
+            const payload = parseJwt(idToken);
+            console.log("Datos de Google recibidos:", payload);
+            
+            // 3. ENVIAR idToken A TU BACKEND PARA VALIDAR Y CREAR SESIÓN
+            // fetch('/api/google-auth', { method: 'POST', body: JSON.stringify({ token: idToken }) });
+            
+            document.getElementById('buttonLabel').textContent = '¡Bienvenido ' + payload.given_name + '!';
+            document.getElementById('mainButton').classList.replace('bg-slate-900', 'bg-emerald-600');
+        }
 
-        // Autenticación inicial obligatoria (Regla 3)
-        const initAuth = async () => {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token).catch(() => signInAnonymously(auth));
-            } else {
-                await signInAnonymously(auth);
+        // Función para decodificar JWT sin librerías externas
+        function parseJwt(token) {
+            try {
+                var base64Url = token.split('.')[1];
+                var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                console.error("Error decodificando JWT", e);
+                return null;
             }
-        };
-        initAuth();
+        }
 
-        // Referencias DOM
-        const registrationForm = document.getElementById('registrationForm');
-        const submitBtn = document.getElementById('submitBtn');
+        const authForm = document.getElementById('authForm');
+        const mainButton = document.getElementById('mainButton');
+        const buttonLabel = document.getElementById('buttonLabel');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const statusBox = document.getElementById('statusBox');
+        const statusText = document.getElementById('statusText');
+        const passwordInput = document.getElementById('password');
+        const confirmInput = document.getElementById('confirmPassword');
 
-        // Función para mostrar mensajes
-        const showToast = (msg, isError = false) => {
-            const toast = document.createElement('div');
-            toast.className = `fixed bottom-10 left-1/2 -translate-x-1/2 ${isError ? 'bg-rose-500' : 'bg-slate-900'} text-white px-6 py-3 rounded-2xl shadow-2xl text-sm font-bold animate-bounce z-50`;
-            toast.innerText = msg;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-        };
-
-        // Manejo de Registro Manual
-        registrationForm.addEventListener('submit', async (e) => {
+        authForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            const name = document.getElementById('regName').value;
-            const email = document.getElementById('regEmail').value;
-            const pass = document.getElementById('regPass').value;
-
-            submitBtn.disabled = true;
-            submitBtn.innerText = "Procesando...";
-
-            try {
-                // 1. Crear usuario en Auth
-                const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-                const user = userCredential.user;
-
-                // 2. Guardar en Firestore (Regla 1: Path estricto)
-                if (user) {
-                    await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'profile'), {
-                        fullName: name,
-                        email: email,
-                        createdAt: new Date().toISOString()
-                    });
-                    
-                    showToast("✓ Usuario registrado en Firebase");
-                    setTimeout(() => window.location.href = 'dashboard.html', 1500);
-                }
-            } catch (error) {
-                console.error(error);
-                showToast("Error: " + error.message, true);
-                submitBtn.disabled = false;
-                submitBtn.innerText = "Comenzar ahora";
+            
+            // Validación de contraseñas
+            if (passwordInput.value !== confirmInput.value) {
+                statusText.textContent = "Las contraseñas no coinciden.";
+                statusBox.classList.remove('hidden');
+                return;
             }
+
+            statusBox.classList.add('hidden');
+            mainButton.disabled = true;
+            buttonLabel.textContent = 'Creando cuenta...';
+            loadingSpinner.style.display = 'block';
+
+            // AQUÍ DEBES HACER LA PETICIÓN FETCH A TU BACKEND
+            setTimeout(() => {
+                // Simulación de éxito
+                buttonLabel.textContent = '¡Cuenta creada!';
+                mainButton.classList.replace('bg-slate-900', 'bg-emerald-600');
+                loadingSpinner.style.display = 'none';
+                
+                //Redirigir después de 1 segundo
+                window.location.href = 'prototipo.html';
+            }, 2000);
         });
-
-        // Manejo de Google Auth
-        window.handleCredentialResponse = async (response) => {
-            try {
-                const credential = GoogleAuthProvider.credential(response.credential);
-                const result = await signInWithCredential(auth, credential);
-                const user = result.user;
-
-                if (user) {
-                    // Guardar perfil si es nuevo
-                    await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'profile'), {
-                        fullName: user.displayName,
-                        email: user.email,
-                        photo: user.photoURL,
-                        lastLogin: new Date().toISOString()
-                    }, { merge: true });
-
-                    showToast("✓ Bienvido " + user.displayName);
-                    setTimeout(() => window.location.href = 'dashboard.html', 1500);
-                }
-            } catch (error) {
-                showToast("Error Google: " + error.message, true);
-            }
-        };
     </script>
 </body>
 </html>
