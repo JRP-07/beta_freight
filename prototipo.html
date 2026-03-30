@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>FreightFynder | Ecosistema Integrado</title>
+    <style>
+        :root { --p: #1a2a6c; --a: #f2a900; --s: #27ae60; --bg: #f1f5f9; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); height: 100vh; display: flex; flex-direction: column; }
+        
+        /* Navegación Superior */
+        nav { background: #222; padding: 10px; display: flex; justify-content: center; gap: 15px; }
+        nav button { background: #444; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; transition: 0.3s; }
+        nav button:hover { background: var(--p); }
+
+        .main-wrapper { display: flex; flex: 1; overflow: hidden; }
+
+        /* SIDEBAR (SOLO PARA CLIENTE) */
+        #sidebar-user { 
+            width: 260px; background: white; border-right: 1px solid #ddd; 
+            padding: 20px; display: flex; flex-direction: column; gap: 10px;
+        }
+        .truck-push { 
+            padding: 15px; border: 2px solid #eee; border-radius: 10px; 
+            cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s;
+        }
+        .truck-push:hover { border-color: var(--p); background: #f8faff; }
+        .selected { border-color: var(--a) !important; background: #fffcf0 !important; font-weight: bold; }
+
+        /* CONTENIDO PRINCIPAL */
+        .content { flex: 1; padding: 25px; overflow-y: auto; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        
+        /* MAPAS (Espacios para Google Maps API) */
+        .google-map { height: 350px; background: #e2e8f0; border-radius: 10px; display: flex; align-items: center; justify-content: center; border: 2px solid #cbd5e1; margin-top: 15px; color: #64748b; }
+
+        input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-confirm { background: var(--a); color: var(--p); }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <button onclick="changeView('user')">👤 Modo Cliente</button>
+    <button onclick="changeView('admin')">🏢 Modo Logística</button>
+    <button onclick="changeView('driver')">🚚 Modo Motorista</button>
+</nav>
+
+<div class="main-wrapper">
+    
+    <aside id="sidebar-user">
+        <h3 style="color:var(--p); margin-top:0;">Tipos de Carga</h3>
+        <div class="truck-push" id="t-cont" onclick="setTruck('Contenedor', '📦')"><span>📦</span> Contenedor</div>
+        <div class="truck-push" id="t-rast" onclick="setTruck('Rastra', '🚛')"><span>🚛</span> Rastra</div>
+        <div class="truck-push" id="t-furg" onclick="setTruck('Furgón', '🚐')"><span>🚐</span> Furgón</div>
+        <div class="truck-push" id="t-lowb" onclick="setTruck('Lowboy', '🚜')"><span>🚜</span> Lowboy</div>
+    </aside>
+
+    <main class="content">
+        
+        <div id="view-user" class="view">
+            <h2>Crear Nuevo Pedido</h2>
+            <div class="card">
+                <input type="text" id="u-ori" placeholder="📍 Lugar de recogida">
+                <input type="text" id="u-des" placeholder="🏁 Lugar de entrega">
+                <button class="btn btn-confirm" onclick="enviarPedido()">Confirmar Flete</button>
+            </div>
+            <div id="u-tracking" class="card hidden">
+                <h3>Estado: <span id="u-status">Esperando...</span></h3>
+                <div class="google-map">🛰️ Google Maps API: Rastreo en vivo para el cliente</div>
+            </div>
+        </div>
+
+        <div id="view-admin" class="view hidden">
+            <h2>Monitor Global de Logística</h2>
+            <div class="card">
+                <div class="google-map" style="height:450px; background:#1e293b; color:white;">
+                    🗺️ Mapa Maestro de Operaciones (Honduras)
+                </div>
+                <div id="admin-log" style="margin-top:15px;">No hay movimientos registrados.</div>
+            </div>
+        </div>
+
+        <div id="view-driver" class="view hidden">
+            <h2>Consola de Conducción</h2>
+            <div id="d-job-alert" class="card hidden" style="border: 3px solid var(--a);">
+                <h3 style="margin:0; color:var(--p)">¡NUEVA ORDEN DISPONIBLE!</h3>
+                <p id="d-desc"></p>
+                <button class="btn" style="background:var(--p); color:white" onclick="acceptJob()">Aceptar Pedido</button>
+            </div>
+            <div id="d-empty" class="card" style="text-align:center; color:#999;">
+                Esperando fletes en tu zona...
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script>
+    let globalDB = { pedido: null, truck: null };
+
+    function changeView(role) {
+        // Ocultar todas las vistas
+        document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+        document.getElementById('view-' + role).classList.remove('hidden');
+
+        // MOSTRAR U OCULTAR EL SIDEBAR
+        const sidebar = document.getElementById('sidebar-user');
+        if (role === 'user') {
+            sidebar.classList.remove('hidden');
+        } else {
+            sidebar.classList.add('hidden');
+        }
+        sync();
+    }
+
+    function setTruck(tipo, icono) {
+        globalDB.truck = { tipo, icono };
+        document.querySelectorAll('.truck-push').forEach(t => t.classList.remove('selected'));
+        // Seleccion visual
+        if(tipo === 'Contenedor') document.getElementById('t-cont').classList.add('selected');
+        if(tipo === 'Rastra') document.getElementById('t-rast').classList.add('selected');
+        if(tipo === 'Furgón') document.getElementById('t-furg').classList.add('selected');
+        if(tipo === 'Lowboy') document.getElementById('t-lowb').classList.add('selected');
+    }
+
+    function enviarPedido() {
+        const o = document.getElementById('u-ori').value;
+        const d = document.getElementById('u-des').value;
+        if(!globalDB.truck || !o || !d) return alert("Selecciona un camión y pon las direcciones.");
+        
+        globalDB.pedido = { ...globalDB.truck, o, d, status: 'Buscando Motorista' };
+        alert("Pedido en la nube. Ve a la vista de Motorista para aceptarlo.");
+        sync();
+    }
+
+    function acceptJob() {
+        globalDB.pedido.status = 'En Camino';
+        alert("Flete aceptado. El cliente ahora ve tu GPS.");
+        sync();
+    }
+
+    function sync() {
+        const p = globalDB.pedido;
+        // Sincronizar Cliente
+        const uTrack = document.getElementById('u-tracking');
+        if(p) {
+            uTrack.classList.remove('hidden');
+            document.getElementById('u-status').innerText = p.status;
+        }
+
+        // Sincronizar Logística
+        if(p) document.getElementById('admin-log').innerHTML = `<strong>${p.icono} ${p.tipo}</strong> en ruta a ${p.d}`;
+
+        // Sincronizar Motorista
+        const dAlert = document.getElementById('d-job-alert');
+        const dEmpty = document.getElementById('d-empty');
+        if(p && p.status === 'Buscando Motorista') {
+            dAlert.classList.remove('hidden');
+            dEmpty.classList.add('hidden');
+            document.getElementById('d-desc').innerHTML = `Unidad: ${p.tipo}<br>Ruta: ${p.o} ➔ ${p.d}`;
+        } else if (p && p.status === 'En Camino') {
+            dAlert.innerHTML = `<h3>GPS ACTIVO</h3><p>Entregando en ${p.d}</p>`;
+        }
+    }
+
+    // Inicializar en vista de cliente
+    changeView('user');
+</script>
+
+</body>
+</html>
