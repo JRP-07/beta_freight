@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motorista V1 | FreightFynder</title>
+    <style>
+        :root { --p: #1a2a6c; --a: #f2a900; --s: #22c55e; }
+        body { font-family: sans-serif; margin: 0; background: #f1f5f9; padding: 15px; }
+        .card-alerta { background: white; border-radius: 20px; padding: 25px; border: 3px solid var(--a); text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .map-preview { height: 200px; background: #ddd; border-radius: 15px; margin: 20px 0; border: 1px solid #ccc; }
+        .btn-accept { width: 100%; padding: 20px; background: var(--s); color: white; border: none; border-radius: 12px; font-weight: bold; font-size: 1.3rem; cursor: pointer; }
+        .btn-reject { margin-top: 15px; background: none; border: none; color: #666; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="card-alerta">
+        <h2 style="margin:0; color:var(--p);">🚀 NUEVA SOLICITUD</h2>
+        <p><b>Rastra 48'</b> <br> Progreso ➔ Puerto Cortés</p>
+        
+        <div id="map-driver-v1" class="map-preview">
+            </div>
+
+        <button class="btn-accept">ACEPTAR FLETE</button>
+        <button class="btn-reject">Omitir por ahora</button>
+    </div>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=TU_API_KEY_AQUI"></script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motorista V2 | Tech Driver</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #0f172a; color: white; padding: 15px; }
+        .job-container { background: #1e293b; border-radius: 20px; padding: 20px; border-bottom: 5px solid #38bdf8; }
+        .specs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
+        .spec-item { background: #0f172a; padding: 10px; border-radius: 10px; text-align: center; font-size: 0.8rem; }
+        .spec-item b { display: block; color: #38bdf8; font-size: 1rem; }
+        #map-v2 { height: 250px; border-radius: 15px; background: #334155; margin-bottom: 20px; }
+        .btn-go { width: 100%; padding: 18px; background: #38bdf8; color: #0f172a; border: none; border-radius: 12px; font-weight: 800; }
+    </style>
+</head>
+<body>
+    <div class="job-container">
+        <h3 style="margin:0;">Detalles de Carga</h3>
+        <div class="specs">
+            <div class="spec-item">TAMAÑO <b>48 Pies</b></div>
+            <div class="spec-item">PESO <b>35 Ton</b></div>
+            <div class="spec-item">TIPO <b>Rastra</b></div>
+            <div class="spec-item">PAGO <b>L. 2,400</b></div>
+        </div>
+        <div id="map-v2">
+            </div>
+        <button class="btn-go">INICIAR RUTA</button>
+    </div>
+
+    <script>
+        // ESPACIO PARA FIREBASE: ESCUCHAR PEDIDOS
+        // firebase.database().ref('pedidos').on(...)
+    </script>
+</body>
+</html>

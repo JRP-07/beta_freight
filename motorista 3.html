@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motorista V3 | Command Center</title>
+    <style>
+        :root { --accent: #22c55e; --dark: #020617; --card: #1e293b; }
+        body { font-family: sans-serif; margin: 0; background: var(--dark); color: white; }
+        header { padding: 20px; background: var(--card); display: flex; justify-content: space-between; align-items: center; }
+        .status-pill { background: rgba(34,197,94,0.2); color: var(--accent); padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; border: 1px solid var(--accent); }
+        
+        .main-content { padding: 20px; }
+        .mission-card { background: var(--card); border-radius: 25px; padding: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+        .route-path { position: relative; padding-left: 30px; margin: 20px 0; border-left: 2px dashed #475569; }
+        .dot { height: 12px; width: 12px; border-radius: 50%; position: absolute; left: -7px; }
+        
+        #map-v3 { height: 300px; border-radius: 20px; background: #0f172a; margin: 20px 0; border: 1px solid #334155; }
+        .action-bar { display: grid; grid-template-columns: 1fr 3fr; gap: 10px; }
+        .btn-circle { height: 60px; width: 60px; border-radius: 50%; background: #334155; border: none; color: white; font-size: 1.5rem; }
+        .btn-confirm { background: var(--accent); color: var(--dark); border-radius: 15px; border: none; font-weight: 900; font-size: 1.2rem; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <header>
+        <strong>FF DRIVER</strong>
+        <div class="status-pill">📡 GPS ACTIVO</div>
+    </header>
+
+    <div class="main-content">
+        <div class="mission-card">
+            <span style="color: #94a3b8; font-size: 0.8rem;">PEDIDO ENTRANTE</span>
+            <h2 style="margin: 5px 0;">📦 Contenedor 40'</h2>
+            
+            <div class="route-path">
+                <div class="dot" style="background: #38bdf8; top: 0;"></div>
+                <p style="margin:0 0 30px 0;"><small>RECOGER EN:</small><br><b>Puerto Cortés, Terminal 4</b></p>
+                <div class="dot" style="background: #ef4444; bottom: 0;"></div>
+                <p style="margin:0;"><small>ENTREGAR EN:</small><br><b>El Progreso, Planta Central</b></p>
+            </div>
+
+            <div id="map-v3">
+                </div>
+
+            <div class="action-bar">
+                <button class="btn-circle" title="Llamar Soporte">📞</button>
+                <button class="btn-confirm" onclick="confirmar()">ACEPTAR MISIÓN</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=TU_API_KEY_AQUI"></script>
+    <script>
+        function confirmar() {
+            alert("Sincronizando con Logística y Cliente...");
+            // db.ref('pedidos/activo').update({ status: 'motorista_en_camino' });
+        }
+    </script>
+</body>
+</html>

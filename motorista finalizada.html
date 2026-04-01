@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreightFynder | Motorista Pro</title>
+    <style>
+        :root {
+            --primary: #0f172a;
+            --accent: #f2a900;
+            --success: #22c55e;
+            --text-dim: #64748b;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Roboto, sans-serif; 
+            background: #f1f5f9; 
+            margin: 0; 
+            padding: 15px; 
+            color: var(--primary);
+        }
+
+        /* TARJETA DE MISIÓN PRINCIPAL */
+        .order-card { 
+            max-width: 500px;
+            margin: auto;
+            border: 3px solid var(--accent); 
+            background: white; 
+            padding: 25px; 
+            border-radius: 24px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        h2 { margin-top: 0; font-weight: 800; letter-spacing: -1px; }
+
+        /* FICHA TÉCNICA DEL FLETE */
+        .specs-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .spec-tile {
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .spec-tile span { display: block; font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; }
+        .spec-tile strong { font-size: 1rem; color: var(--primary); }
+
+        /* MAPA NAVEGACIÓN */
+        #driver-map { 
+            height: 280px; 
+            background: #cbd5e1; 
+            border-radius: 18px; 
+            margin: 15px 0; 
+            border: 1px solid #94a3b8;
+            overflow: hidden;
+        }
+
+        /* BOTONES DE ACCIÓN */
+        .btn-accept { 
+            width: 100%; 
+            padding: 20px; 
+            background: var(--success); 
+            color: white; 
+            border: none; 
+            border-radius: 16px; 
+            font-weight: bold; 
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #166534;
+            transition: 0.1s;
+        }
+
+        .btn-accept:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 transparent;
+        }
+
+        .route-summary {
+            text-align: left;
+            padding: 15px;
+            background: #fff9eb;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="order-card">
+        <h2>🚚 NUEVA CARGA DISPONIBLE</h2>
+        
+        <div class="route-summary">
+            📍 <strong>Origen:</strong> <span id="txt-origen">Puerto Cortés, Honduras</span><br>
+            🏁 <strong>Destino:</strong> <span id="txt-destino">El Progreso, Yoro</span>
+        </div>
+
+        <div class="specs-container">
+            <div class="spec-tile">
+                <span>Equipo</span>
+                <strong id="val-tipo">Rastra 48'</strong>
+            </div>
+            <div class="spec-tile">
+                <span>Capacidad</span>
+                <strong id="val-peso">35 Toneladas</strong>
+            </div>
+            <div class="spec-tile">
+                <span>Pago Est.</span>
+                <strong id="val-pago" style="color:var(--success)">L. 2,450.00</strong>
+            </div>
+            <div class="spec-tile">
+                <span>Cliente</span>
+                <strong id="val-user">Mario D.</strong>
+            </div>
+        </div>
+
+        <div id="driver-map">
+            </div>
+
+        <button onclick="aceptarPedido()" class="btn-accept">ACEPTAR Y RECOGER</button>
+    </div>
+
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
+
+<script>
+  // 1. CONFIGURACIÓN DE FIREBASE (PEGA TUS LLAVES AQUÍ)
+  const firebaseConfig = {
+    apiKey: "TU_API_KEY_FIREBASE",
+    databaseURL: "https://tu-proyecto.firebaseio.com",
+    projectId: "tu-proyecto-id",
+  };
+
+  // Inicializar Firebase (Descomentar al tener llaves)
+  // const app = firebase.initializeApp(firebaseConfig);
+  // const db = firebase.database();
+
+  function aceptarPedido() {
+      alert("¡Flete Aceptado! El mapa ahora trazará la ruta hacia el origen.");
+      // Lógica: db.ref('pedidos/activo').update({ estado: 'en_ruta' });
+  }
+</script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=TU_API_KEY_MAPS&callback=initDriverMap" async defer></script>
+
+<script>
+    function initDriverMap() {
+        const hnd = { lat: 15.5, lng: -87.8 };
+        const map = new google.maps.Map(document.getElementById("driver-map"), {
+            zoom: 10,
+            center: hnd,
+            disableDefaultUI: true, // Interfaz limpia para el motorista
+        });
+    }
+</script>
+
+</body>
+</html>
