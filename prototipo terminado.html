@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreightFynder | Sistema con Historial 1000</title>
+    <style>
+        :root { --p: #0f172a; --a: #f2a900; --s: #22c55e; --acc: #38bdf8; --bg: #f1f5f9; --d: #ef4444; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--p); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+        /* NAVEGACIÓN */
+        .proto-nav { background: #000; padding: 10px; display: flex; justify-content: center; gap: 10px; z-index: 1000; }
+        .proto-nav button { background: #334155; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 0.7rem; font-weight: 800; }
+        .active-btn { background: var(--a) !important; color: var(--p) !important; }
+
+        #main-stage { flex: 1; display: flex; overflow: hidden; }
+
+        /* --- CLIENTE --- */
+        .client-view { display: flex; width: 100%; height: 100%; }
+        .sidebar { width: 260px; background: white; border-right: 1px solid #ddd; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .truck-card { padding: 12px; border: 2px solid #eee; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 0.85rem; transition: 0.2s; }
+        .selected { border-color: var(--a) !important; background: #fffcf0; font-weight: bold; }
+        
+        /* --- LOGÍSTICA --- */
+        .admin-view { display: grid; grid-template-columns: 1fr 350px; width: 100%; background: #020617; }
+        .admin-side { background: #1e293b; color: white; padding: 20px; border-left: 1px solid #334155; overflow-y: auto; }
+        .history-card { background: rgba(34, 197, 94, 0.1); border: 1px solid var(--s); padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 0.8rem; }
+
+        /* --- MOTORISTA --- */
+        .driver-view { width: 100%; display: flex; align-items: center; justify-content: center; background: #f8fafc; }
+        .driver-app { max-width: 400px; width: 90%; background: white; border: 4px solid var(--a); border-radius: 25px; padding: 25px; box-shadow: 0 15px 30px rgba(0,0,0,0.1); text-align: center; }
+        
+        /* UTILIDADES */
+        .specs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; text-align: left; }
+        .spec-item { background: #f1f5f9; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .spec-label { font-size: 0.6rem; color: #64748b; text-transform: uppercase; display: block; }
+        .spec-val { font-size: 0.85rem; font-weight: bold; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div class="proto-nav">
+        <button id="nav-u" onclick="show('user')" class="active-btn">CLIENTE</button>
+        <button id="nav-a" onclick="show('admin')">LOGÍSTICA</button>
+        <button id="nav-d" onclick="show('driver')">MOTORISTA</button>
+    </div>
+
+    <div id="main-stage"></div>
+
+    <script>
+        // --- BASE DE DATOS GLOBAL ---
+        let db = {
+            pedidoActivo: null,
+            historialEntregados: [], // Aquí guardamos lo que ya pasó
+            estadoMotorista: 'LIBRE'
+        };
+
+        function show(v) {
+            const stage = document.getElementById('main-stage');
+            document.querySelectorAll('.proto-nav button').forEach(b => b.classList.remove('active-btn'));
+            document.getElementById('nav-' + v.charAt(0)).classList.add('active-btn');
+
+            if (v === 'user') {
+                stage.innerHTML = `
+                <div class="client-view">
+                    <aside class="sidebar">
+                        <h3 style="color:var(--p); margin:0 0 15px 0;">FreightFynder</h3>
+                        <div class="truck-card" onclick="selT('Contenedor','📦','40 pies','30 Ton',1600,this)"><span>📦</span> Contenedor 40'</div>
+                        <div class="truck-card" onclick="selT('Rastra','🚛','48 pies','35 Ton',2450,this)"><span>🚛</span> Rastra 48'</div>
+                        <div class="truck-card" onclick="selT('Furgón','🚐','24 pies','10 Ton',1200,this)"><span>🚐</span> Furgón 24'</div>
+                        <div class="truck-card" onclick="selT('Lowboy','🚜','53 pies','60 Ton',4200,this)"><span>🚜</span> Lowboy 53'</div>
+                    </aside>
+                    <div style="flex:1; padding:30px;">
+                        <div style="background:white; padding:25px; border-radius:15px; max-width:500px; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+                            <h2>Solicitar Flete</h2>
+                            <div id="u-info" class="hidden" style="background:#f0f9ff; padding:10px; border-radius:8px; margin-bottom:15px; border:1px solid var(--acc); font-size:0.8rem;">
+                                Seleccionado: <b id="u-nom"></b> | Pago: <b id="u-pre"></b>
+                            </div>
+                            <input type="text" id="ori" placeholder="📍 Origen" style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ccc; border-radius:8px;">
+                            <input type="text" id="des" placeholder="🏁 Destino" style="width:100%; padding:12px; margin-bottom:15px; border:1px solid #ccc; border-radius:8px;">
+                            <button class="btn" style="background:var(--a)" onclick="pedir()">ENVIAR PEDIDO</button>
+                        </div>
+                    </div>
+                </div>`;
+            }
+
+            else if (v === 'admin') {
+                renderAdmin(stage);
+            }
+
+            else if (v === 'driver') {
+                renderDriver(stage);
+            }
+        }
+
+        function renderAdmin(stage) {
+            let activosHTML = db.pedidoActivo ? `
+                <div style="background:#0f172a; padding:15px; border-radius:10px; border-left:5px solid var(--a); margin-bottom:20px;">
+                    <span style="color:var(--a); font-size:0.7rem; font-weight:bold;">EN CURSO</span><br>
+                    <strong>${db.pedidoActivo.ico} ${db.pedidoActivo.tipo}</strong><br>
+                    <small>${db.pedidoActivo.ori} ➔ ${db.pedidoActivo.des}</small>
+                </div>
+            ` : '<p style="color:#94a3b8">No hay fletes activos.</p>';
+
+            let historialHTML = db.historialEntregados.map(h => `
+                <div class="history-card">
+                    <span style="color:var(--s); font-weight:bold;">✓ ENTREGADO</span><br>
+                    <b>${h.ico} ${h.tipo}</b> (${h.pies})<br>
+                    <small>Ruta: ${h.ori} a ${h.des}</small><br>
+                    <small>Pago: L. ${h.precio}</small>
+                </div>
+            `).join('');
+
+            stage.innerHTML = `
+            <div class="admin-view">
+                <div style="display:flex; align-items:center; justify-content:center; color:white;">[MAPA GLOBAL HONDURAS]</div>
+                <aside class="admin-side">
+                    <h3>Monitor Global</h3>
+                    <div id="activos-seccion">${activosHTML}</div>
+                    
+                    <h3 style="margin-top:30px; border-top:1px solid #334155; padding-top:10px; color:var(--s);">Historial de Hoy</h3>
+                    <div id="historial-seccion">${historialHTML || '<p style="color:#94a3b8">Ninguna entrega registrada.</p>'}</div>
+                </aside>
+            </div>`;
+        }
+
+        function renderDriver(stage) {
+            let html = "";
+            if (db.estadoMotorista === 'LIBRE') {
+                html = `<div class="driver-app"><h2>ESPERANDO...</h2><p>Tu unidad está visible en el mapa de Logística.</p></div>`;
+            } 
+            else if (db.estadoMotorista === 'ALERTA') {
+                html = `<div class="driver-app">
+                            <h2 style="color:var(--a)">¡NUEVA CARGA!</h2>
+                            <div class="specs-grid">
+                                <div class="spec-item"><span class="spec-label">Unidad</span><span class="spec-val">${db.pedidoActivo.ico} ${db.pedidoActivo.tipo}</span></div>
+                                <div class="spec-item"><span class="spec-label">Tamaño</span><span class="spec-val">${db.pedidoActivo.pies}</span></div>
+                                <div class="spec-item"><span class="spec-label">Capacidad</span><span class="spec-val">${db.pedidoActivo.carga}</span></div>
+                                <div class="spec-item"><span class="spec-label">Pago</span><span class="spec-val" style="color:var(--s)">L. ${db.pedidoActivo.precio}</span></div>
+                            </div>
+                            <p style="text-align:left; font-size:0.8rem;">📍 <b>Origen:</b> ${db.pedidoActivo.ori}<br>🏁 <b>Destino:</b> ${db.pedidoActivo.des}</p>
+                            <button class="btn" style="background:var(--s); color:white;" onclick="aceptar()">ACEPTAR FLETE</button>
+                            <button class="btn" style="background:#eee; color:#666;" onclick="rechazar()">RECHAZAR</button>
+                        </div>`;
+            }
+            else if (db.estadoMotorista === 'TRANSITO') {
+                html = `<div class="driver-app" style="border-color:var(--acc)">
+                            <h2 style="color:var(--acc)">VIAJE EN CURSO</h2>
+                            <p>Entregando <b>${db.pedidoActivo.tipo}</b></p>
+                            <div style="background:#eefaff; padding:15px; border-radius:12px; margin-bottom:15px; border:1px solid var(--acc);">
+                                🏁 <b>Destino:</b> ${db.pedidoActivo.des}
+                            </div>
+                            <button class="btn" style="background:var(--p); color:white;" onclick="finalizar()">FINALIZAR Y ENTREGAR</button>
+                        </div>`;
+            }
+            stage.innerHTML = `<div class="driver-view">${html}</div>`;
+        }
+
+        // LÓGICA
+        let temp = {};
+        function selT(tipo, ico, pies, carga, precio, el) {
+            document.querySelectorAll('.truck-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            temp = { tipo, ico, pies, carga, precio };
+            document.getElementById('u-info').classList.remove('hidden');
+            document.getElementById('u-nom').innerText = ico + " " + tipo;
+            document.getElementById('u-pre').innerText = "L. " + precio;
+        }
+
+        function pedir() {
+            const o = document.getElementById('ori').value;
+            const d = document.getElementById('des').value;
+            if(!temp.tipo || !o || !d) return alert("Completa los datos.");
+            db.pedidoActivo = { ...temp, ori: o, des: d };
+            db.estadoMotorista = 'ALERTA';
+            alert("Pedido enviado. Notificando al motorista...");
+        }
+
+        function aceptar() {
+            db.estadoMotorista = 'TRANSITO';
+            show('driver');
+        }
+
+        function rechazar() {
+            db.pedidoActivo = null; db.estadoMotorista = 'LIBRE';
+            show('driver');
+        }
+
+        function finalizar() {
+            alert("¡Carga Entregada!");
+            // MOVER AL HISTORIAL ANTES DE BORRAR EL ACTIVO
+            db.historialEntregados.push({ ...db.pedidoActivo });
+            db.pedidoActivo = null; 
+            db.estadoMotorista = 'LIBRE';
+            show('driver');
+        }
+
+        window.onload = () => show('user');
+    </script>
+</body>
+</html>

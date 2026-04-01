@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreightFynder | Ecosistema Logístico Profesional</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --p: #0f172a; --a: #f2a900; --s: #22c55e; --d: #ef4444; --acc: #38bdf8; --bg: #f1f5f9; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--p); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+        /* NAVEGACIÓN DEL PROTOTIPO */
+        .proto-switcher { background: #000; padding: 10px; display: flex; justify-content: center; gap: 15px; z-index: 1000; }
+        .proto-switcher button { background: #334155; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: 800; }
+        .active-btn { background: var(--a) !important; color: var(--p) !important; }
+
+        #app-container { flex: 1; display: flex; overflow: hidden; }
+
+        /* --- VISTA CLIENTE --- */
+        .client-layout { display: flex; width: 100%; height: 100%; }
+        .sidebar { width: 280px; background: white; border-right: 1px solid #ddd; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .truck-push { padding: 12px; border: 2px solid #eee; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; }
+        .truck-selected { border-color: var(--a) !important; background: #fffcf0; font-weight: bold; }
+        .client-main { flex: 1; padding: 30px; }
+
+        /* --- VISTA LOGÍSTICA --- */
+        .admin-layout { display: grid; grid-template-columns: 1fr 380px; width: 100%; background: #020617; }
+        .admin-sidebar { background: #1e293b; color: white; padding: 20px; border-left: 1px solid #334155; }
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
+
+        /* --- VISTA MOTORISTA --- */
+        .driver-layout { width: 100%; display: flex; align-items: center; justify-content: center; background: #f8fafc; }
+        .driver-card { max-width: 420px; width: 90%; background: white; border: 3px solid var(--a); border-radius: 24px; padding: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; }
+        .in-transit-border { border-color: var(--acc) !important; }
+
+        /* COMPONENTES GENERALES */
+        .card { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .map-box { background: #e2e8f0; border-radius: 12px; border: 2px dashed #cbd5e1; height: 200px; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 0.8rem; margin: 15px 0; }
+        .btn-p { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 1rem; margin-top: 10px; transition: 0.2s; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div class="proto-switcher">
+        <button id="btn-u" onclick="render('user', this)" class="active-btn">👤 CLIENTE</button>
+        <button id="btn-a" onclick="render('admin', this)">🏢 LOGÍSTICA</button>
+        <button id="btn-d" onclick="render('driver', this)">🚚 MOTORISTA</button>
+    </div>
+
+    <div id="app-container"></div>
+
+    <script>
+        // ESTADO GLOBAL (Simulación de Firebase)
+        let db = {
+            pedido: null, // Objeto con datos del flete
+            motoristaStatus: 'disponible' // disponible, alerta, transcurso
+        };
+
+        function render(view, btn) {
+            const container = document.getElementById('app-container');
+            document.querySelectorAll('.proto-switcher button').forEach(b => b.classList.remove('active-btn'));
+            btn.classList.add('active-btn');
+
+            if (view === 'user') {
+                container.innerHTML = `
+                    <div class="client-layout">
+                        <aside class="sidebar">
+                            <h3>Unidades</h3>
+                            <div class="truck-push" onclick="selectT('Contenedor','📦','40ft','30T',1600,this)"><span>📦</span> Contenedor 40'</div>
+                            <div class="truck-push" onclick="selectT('Rastra','🚛','48ft','35T',2450,this)"><span>🚛</span> Rastra 48'</div>
+                            <div class="truck-push" onclick="selectT('Furgón','🚐','24ft','10T',1200,this)"><span>🚐</span> Furgón 24'</div>
+                        </aside>
+                        <main class="client-main">
+                            <div class="card" style="max-width:500px">
+                                <h2>Solicitar Flete</h2>
+                                <input type="text" id="ori" placeholder="📍 Origen" style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px;">
+                                <input type="text" id="des" placeholder="🏁 Destino" style="width:100%; padding:12px; margin-bottom:15px; border:1px solid #ddd; border-radius:8px;">
+                                <button class="btn-p" style="background:var(--a)" onclick="crearPedido()">PUBLICAR PEDIDO</button>
+                            </div>
+                        </main>
+                    </div>`;
+            } 
+            
+            else if (view === 'admin') {
+                let statusColor = db.pedido ? (db.pedido.status === 'En Transcurso' ? 'var(--acc)' : 'var(--a)') : '#666';
+                container.innerHTML = `
+                    <div class="admin-layout">
+                        <div class="map-box" style="height:100%; margin:0; border:none; background:#020617; border-radius:0; color:white;">
+                            [MAPA GLOBAL: MONITOREO HONDURAS]
+                        </div>
+                        <aside class="admin-sidebar">
+                            <h3>Panel de Control</h3>
+                            <div id="log">
+                                ${db.pedido ? `
+                                    <div style="background:#0f172a; padding:15px; border-radius:12px; border-left:4px solid ${statusColor}">
+                                        <strong>${db.pedido.ico} ${db.pedido.nom}</strong><br>
+                                        <small>${db.pedido.ori} ➔ ${db.pedido.des}</small><br><br>
+                                        <span class="status-badge" style="background:${statusColor}">${db.pedido.status}</span>
+                                    </div>
+                                ` : '<p style="color:#94a3b8">No hay fletes activos.</p>'}
+                            </div>
+                        </aside>
+                    </div>`;
+            }
+
+            else if (view === 'driver') {
+                renderMotorista(container);
+            }
+        }
+
+        function renderMotorista(container) {
+            const p = db.pedido;
+            let content = "";
+
+            if (!p) {
+                content = `<h2>Buscando...</h2><p style="color:#666">Esperando pedidos en la zona.</p>`;
+            } else if (p.status === 'Buscando') {
+                content = `
+                    <h2>🚚 NUEVA ALERTA</h2>
+                    <div style="text-align:left; background:#f8fafc; padding:15px; border-radius:12px; font-size:0.9rem;">
+                        <strong>Carga:</strong> ${p.nom}<br>
+                        <strong>Ruta:</strong> ${p.ori} ➔ ${p.des}<br>
+                        <strong style="color:var(--s)">Pago: L. ${p.pre}</strong>
+                    </div>
+                    <div class="map-box">Ruta de Recolección</div>
+                    <button class="btn-p" style="background:var(--s); color:white" onclick="aceptar()">ACEPTAR FLETE</button>
+                    <button class="btn-p" style="background:#eee; color:#666" onclick="rechazar()">RECHAZAR</button>
+                `;
+            } else if (p.status === 'En Transcurso') {
+                content = `
+                    <h2 style="color:var(--acc)">EN TRANSURSO</h2>
+                    <p>Usted tiene un flete activo. No puede recibir más pedidos.</p>
+                    <div style="text-align:left; background:#f0f9ff; padding:15px; border-radius:12px; border:1px solid var(--acc);">
+                        <strong>Destino actual:</strong> ${p.des}<br>
+                        <strong>Carga:</strong> ${p.nom}
+                    </div>
+                    <div class="map-box">Navegación GPS Activa</div>
+                    <button class="btn-p" style="background:var(--p); color:white" onclick="finalizar()">FINALIZAR ENTREGA</button>
+                `;
+            }
+
+            container.innerHTML = `
+                <div class="driver-layout">
+                    <div class="driver-card ${p && p.status === 'En Transcurso' ? 'in-transit-border' : ''}">
+                        ${content}
+                    </div>
+                </div>`;
+        }
+
+        // ACCIONES
+        let selectedTruck = {};
+        function selectT(nom, ico, lar, pes, pre, el) {
+            document.querySelectorAll('.truck-push').forEach(o => o.classList.remove('truck-selected'));
+            el.classList.add('truck-selected');
+            selectedTruck = { nom, ico, lar, pes, pre };
+        }
+
+        function crearPedido() {
+            const o = document.getElementById('ori').value;
+            const d = document.getElementById('des').value;
+            if(!selectedTruck.nom || !o || !d) return alert("Faltan datos");
+            db.pedido = { ...selectedTruck, ori: o, des: d, status: 'Buscando' };
+            alert("Pedido publicado. El motorista recibirá la notificación.");
+        }
+
+        function aceptar() {
+            db.pedido.status = 'En Transcurso';
+            db.motoristaStatus = 'transcurso';
+            alert("Flete aceptado. Su estado ahora es: EN TRANSURSO.");
+            render('driver', document.getElementById('btn-d'));
+        }
+
+        function rechazar() {
+            db.pedido = null;
+            alert("Flete rechazado.");
+            render('driver', document.getElementById('btn-d'));
+        }
+
+        function finalizar() {
+            alert("¡Entrega exitosa! Ahora estás disponible para nuevos fletes.");
+            db.pedido = null;
+            db.motoristaStatus = 'disponible';
+            render('driver', document.getElementById('btn-d'));
+        }
+
+        window.onload = () => render('user', document.getElementById('btn-u'));
+    </script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreightFynder Ecosystem | Beta 1000</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --p: #0f172a; --a: #f2a900; --s: #22c55e; --acc: #38bdf8; --bg: #f1f5f9; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--p); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+        /* NAVEGACIÓN DE PRUEBA (SIMULADOR) */
+        .proto-switcher { background: #000; padding: 10px; display: flex; justify-content: center; gap: 15px; z-index: 1000; }
+        .proto-switcher button { background: #334155; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: 800; }
+        .active-btn { background: var(--a) !important; color: var(--p) !important; }
+
+        /* CONTENEDOR PRINCIPAL */
+        #app-container { flex: 1; display: flex; overflow: hidden; }
+
+        /* --- 1. INTERFAZ CLIENTE (CON SIDEBAR) --- */
+        .client-layout { display: flex; width: 100%; height: 100%; }
+        .sidebar { width: 280px; background: white; border-right: 1px solid #ddd; padding: 20px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
+        .truck-push { padding: 15px; border: 2px solid #eee; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
+        .truck-push:hover { border-color: var(--p); }
+        .truck-selected { border-color: var(--a) !important; background: #fffcf0; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+
+        .client-main { flex: 1; padding: 30px; overflow-y: auto; }
+
+        /* --- 2. INTERFAZ LOGÍSTICA (MAPA COMPLETO) --- */
+        .admin-layout { display: grid; grid-template-columns: 1fr 380px; width: 100%; background: #020617; }
+        .admin-sidebar { background: #1e293b; color: white; padding: 20px; border-left: 1px solid #334155; }
+
+        /* --- 3. INTERFAZ MOTORISTA (VISTA MÓVIL) --- */
+        .driver-layout { width: 100%; display: flex; align-items: center; justify-content: center; background: #f8fafc; }
+        .driver-card { max-width: 420px; width: 90%; background: white; border: 3px solid var(--a); border-radius: 24px; padding: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; }
+
+        /* COMPONENTES REUTILIZABLES */
+        .card { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .map-api-box { background: #e2e8f0; border-radius: 12px; border: 2px dashed #cbd5e1; height: 300px; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 0.8rem; margin-top: 15px; }
+        .btn-p { width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; font-size: 1rem; }
+        
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div class="proto-switcher">
+        <button id="btn-u" onclick="render('user', this)" class="active-btn">MODO CLIENTE</button>
+        <button id="btn-a" onclick="render('admin', this)">MODO LOGÍSTICA</button>
+        <button id="btn-d" onclick="render('driver', this)">MODO MOTORISTA</button>
+    </div>
+
+    <div id="app-container">
+        </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-bundle.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-bundle.js"></script>
+
+    <script>
+        // BASE DE DATOS SIMULADA (Sincronización en tiempo real)
+        let dbState = { pedido: null };
+
+        function render(view, btn) {
+            const container = document.getElementById('app-container');
+            document.querySelectorAll('.proto-switcher button').forEach(b => b.classList.remove('active-btn'));
+            btn.classList.add('active-btn');
+
+            if (view === 'user') {
+                container.innerHTML = `
+                    <div class="client-layout">
+                        <aside class="sidebar">
+                            <h2 style="color:var(--p); margin-top:0;">FreightFynder</h2>
+                            <p style="font-size:0.8rem; color:#666;">Seleccione su unidad:</p>
+                            <div class="truck-push" onclick="selectT('Contenedor', '📦', '40 pies', '30 Ton', 1600, this)"><span>📦</span> Contenedor 40'</div>
+                            <div class="truck-push" onclick="selectT('Rastra', '🚛', '48 pies', '35 Ton', 2450, this)"><span>🚛</span> Rastra 48'</div>
+                            <div class="truck-push" onclick="selectT('Furgón', '🚐', '24 pies', '10 Ton', 1200, this)"><span>🚐</span> Furgón 24'</div>
+                            <div class="truck-push" onclick="selectT('Lowboy', '🚜', '53 pies', '60 Ton', 4200, this)"><span>🚜</span> Lowboy 53'</div>
+                        </aside>
+                        <main class="client-main">
+                            <div class="card" style="max-width: 600px;">
+                                <div id="u-info" class="hidden" style="margin-bottom:20px; background:#f8faff; padding:15px; border-radius:10px; border:1px solid #d1d9e6;">
+                                    <strong id="u-nom">--</strong> | <b id="u-pre" style="color:var(--s)">L. 0.00</b>
+                                    <div style="font-size:0.8rem; color:#666; margin-top:5px;">Tamaño: <span id="u-lar">--</span> | Capacidad: <span id="u-pes">--</span></div>
+                                </div>
+                                <input type="text" id="u-ori" placeholder="📍 Origen" style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box;">
+                                <input type="text" id="u-des" placeholder="🏁 Destino" style="width:100%; padding:12px; margin-bottom:15px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box;">
+                                <button class="btn-p" style="background:var(--a); color:var(--p);" onclick="confirmar()">SOLICITAR FLETE</button>
+                                <div class="map-api-box">[Google Maps API: Rastreo Cliente]</div>
+                            </div>
+                        </main>
+                    </div>`;
+            } 
+            
+            else if (view === 'admin') {
+                container.innerHTML = `
+                    <div class="admin-layout">
+                        <div class="map-api-box" style="height:100%; border:none; margin:0; border-radius:0; background:#020617;">
+                            <div style="color:white; text-align:center;">🌐 [Google Maps Monitor Global]<br><small>Vigilancia de Flota en Honduras</small></div>
+                        </div>
+                        <aside class="admin-sidebar">
+                            <h3 style="color:var(--acc); border-bottom:1px solid #334155; padding-bottom:10px;">OPERACIONES</h3>
+                            <div id="adm-log">${dbState.pedido ? `<strong>${dbState.pedido.ico} ${dbState.pedido.nom}</strong><br><small>${dbState.pedido.status}</small>` : 'Esperando datos...'}</div>
+                        </aside>
+                    </div>`;
+            }
+
+            else if (view === 'driver') {
+                const p = dbState.pedido;
+                container.innerHTML = `
+                    <div class="driver-layout">
+                        <div class="driver-card">
+                            ${p && p.status === 'Buscando' ? `
+                                <h2>🚚 NUEVA CARGA</h2>
+                                <div style="text-align:left; background:#f1f5f9; padding:15px; border-radius:12px; margin-bottom:15px;">
+                                    <strong>Unidad:</strong> ${p.nom} (${p.lar})<br>
+                                    <strong>Ruta:</strong> ${p.ori} ➔ ${p.des}<br>
+                                    <strong style="color:var(--s)">Pago: L. ${p.pre}</strong>
+                                </div>
+                                <div class="map-api-box" style="height:180px;">[Mapa de Navegación]</div>
+                                <button class="btn-p" style="background:var(--s); color:white;" onclick="aceptar()">ACEPTAR MISIÓN</button>
+                            ` : `
+                                <h2>Buscando Fletes...</h2>
+                                <p style="color:#666;">No hay pedidos en tu zona en este momento.</p>
+                            `}
+                        </div>
+                    </div>`;
+            }
+        }
+
+        // LÓGICA DE INTERACCIÓN
+        let sel = {};
+        function selectT(nom, ico, lar, pes, pre, el) {
+            document.querySelectorAll('.truck-push').forEach(o => o.classList.remove('truck-selected'));
+            el.classList.add('truck-selected');
+            sel = { nom, ico, lar, pes, pre };
+            document.getElementById('u-info').classList.remove('hidden');
+            document.getElementById('u-nom').innerText = ico + " " + nom;
+            document.getElementById('u-pre').innerText = "L. " + pre.toLocaleString();
+            document.getElementById('u-lar').innerText = lar;
+            document.getElementById('u-pes').innerText = pes;
+        }
+
+        function confirmar() {
+            const o = document.getElementById('u-ori').value;
+            const d = document.getElementById('u-des').value;
+            if(!sel.nom || !o || !d) return alert("Complete los datos");
+            dbState.pedido = { ...sel, ori: o, des: d, status: 'Buscando' };
+            alert("Pedido sincronizado en Firebase.");
+        }
+
+        function aceptar() {
+            dbState.pedido.status = 'En Ruta';
+            alert("Ruta aceptada. GPS activo.");
+            render('driver', document.getElementById('btn-d'));
+        }
+
+        // Cargar vista inicial
+        window.onload = () => render('user', document.getElementById('btn-u'));
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=TU_API_KEY_AQUI" async defer></script>
+</body>
+</html>

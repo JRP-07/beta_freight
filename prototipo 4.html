@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreightFynder | Prototipo Real-Time</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --p: #0f172a; --a: #f2a900; --s: #22c55e; --d: #ef4444; --acc: #38bdf8; --bg: #f1f5f9; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--p); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+        /* NAVEGACIÓN PROTOTIPO */
+        .proto-nav { background: #000; padding: 10px; display: flex; justify-content: center; gap: 10px; z-index: 1000; }
+        .proto-nav button { background: #334155; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 0.7rem; font-weight: 800; }
+        .active-btn { background: var(--a) !important; color: var(--p) !important; }
+
+        #main-stage { flex: 1; display: flex; overflow: hidden; }
+
+        /* --- VISTA CLIENTE --- */
+        .client-view { display: flex; width: 100%; }
+        .sidebar { width: 260px; background: white; border-right: 1px solid #ddd; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .truck-card { padding: 12px; border: 2px solid #eee; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 0.85rem; transition: 0.2s; }
+        .selected { border-color: var(--a) !important; background: #fffcf0; font-weight: bold; }
+        
+        /* --- VISTA LOGÍSTICA --- */
+        .admin-view { display: grid; grid-template-columns: 1fr 350px; width: 100%; background: #020617; }
+        .admin-side { background: #1e293b; color: white; padding: 20px; border-left: 1px solid #334155; }
+
+        /* --- VISTA MOTORISTA --- */
+        .driver-view { width: 100%; display: flex; align-items: center; justify-content: center; background: #f8fafc; }
+        .driver-app { max-width: 400px; width: 90%; background: white; border: 4px solid var(--a); border-radius: 25px; padding: 25px; box-shadow: 0 15px 30px rgba(0,0,0,0.1); text-align: center; }
+        .status-msg { font-weight: 800; font-size: 1.2rem; margin-bottom: 15px; }
+
+        /* UTILIDADES */
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1rem; margin-top: 10px; }
+        .map-box { background: #e2e8f0; height: 180px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 0.8rem; margin: 15px 0; border: 2px dashed #cbd5e1; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div class="proto-nav">
+        <button id="nav-u" onclick="show('user')" class="active-btn">CLIENTE</button>
+        <button id="nav-a" onclick="show('admin')">LOGÍSTICA</button>
+        <button id="nav-d" onclick="show('driver')">MOTORISTA</button>
+    </div>
+
+    <div id="main-stage"></div>
+
+    <script>
+        // --- MOTOR DE DATOS (SIMULA FIREBASE) ---
+        let fleteActivo = null; 
+        let estadoMotorista = 'LIBRE'; // LIBRE, RECIBIENDO, EN_TRANSITO
+
+        function show(vista) {
+            const stage = document.getElementById('main-stage');
+            document.querySelectorAll('.proto-nav button').forEach(b => b.classList.remove('active-btn'));
+            document.getElementById('nav-' + vista.charAt(0)).classList.add('active-btn');
+
+            if (vista === 'user') {
+                stage.innerHTML = `
+                <div class="client-view">
+                    <aside class="sidebar">
+                        <h3 style="color:var(--p); margin:0 0 15px 0;">FreightFynder</h3>
+                        <div class="truck-card" onclick="selT('Contenedor','📦','40ft','30T',1600,this)"><span>📦</span> Contenedor 40'</div>
+                        <div class="truck-card" onclick="selT('Rastra','🚛','48ft','35T',2450,this)"><span>🚛</span> Rastra 48'</div>
+                        <div class="truck-card" onclick="selT('Furgón','🚐','24ft','10T',1200,this)"><span>🚐</span> Furgón 24'</div>
+                        <div class="truck-card" onclick="selT('Lowboy','🚜','53ft','60T',4200,this)"><span>🚜</span> Lowboy 53'</div>
+                    </aside>
+                    <div style="flex:1; padding:30px;">
+                        <div class="card" style="max-width:500px;">
+                            <h2>Solicitar Camión</h2>
+                            <input type="text" id="ori" placeholder="📍 Origen" style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ccc; border-radius:8px;">
+                            <input type="text" id="des" placeholder="🏁 Destino" style="width:100%; padding:12px; margin-bottom:15px; border:1px solid #ccc; border-radius:8px;">
+                            <button class="btn" style="background:var(--a)" onclick="pedir()">ENVIAR PEDIDO</button>
+                        </div>
+                    </div>
+                </div>`;
+            }
+
+            else if (vista === 'admin') {
+                let color = fleteActivo ? (fleteActivo.status === 'EN_TRANSITO' ? 'var(--acc)' : 'var(--a)') : '#444';
+                stage.innerHTML = `
+                <div class="admin-view">
+                    <div class="map-box" style="height:100%; margin:0; border:none; background:#020617; color:white;">[MAPA GLOBAL HONDURAS]</div>
+                    <aside class="admin-side">
+                        <h3>Monitor de Flota</h3>
+                        ${fleteActivo ? `
+                            <div style="background:#0f172a; padding:15px; border-radius:10px; border-left:5px solid ${color}">
+                                <strong>${fleteActivo.ico} ${fleteActivo.tipo}</strong><br>
+                                <small>${fleteActivo.ori} ➔ ${fleteActivo.des}</small><br><br>
+                                <span style="background:${color}; padding:4px 8px; border-radius:4px; font-size:0.7rem;">${fleteActivo.status}</span>
+                            </div>
+                        ` : '<p style="color:#94a3b8">Sin actividad.</p>'}
+                    </aside>
+                </div>`;
+            }
+
+            else if (vista === 'driver') {
+                renderDriver(stage);
+            }
+        }
+
+        function renderDriver(stage) {
+            let html = "";
+            if (estadoMotorista === 'LIBRE') {
+                html = `<div class="driver-app">
+                            <div class="status-msg">ESPERANDO CARGA...</div>
+                            <p style="color:#666">Tu GPS está activo. Pronto recibirás un flete.</p>
+                        </div>`;
+            } 
+            else if (estadoMotorista === 'RECIBIENDO') {
+                html = `<div class="driver-app">
+                            <div class="status-msg" style="color:var(--a)">¡NUEVO FLETE!</div>
+                            <div style="text-align:left; background:#f8fafc; padding:15px; border-radius:12px;">
+                                <strong>Unidad:</strong> ${fleteActivo.tipo} (${fleteActivo.pies})<br>
+                                <strong>Ruta:</strong> ${fleteActivo.ori} ➔ ${fleteActivo.des}<br>
+                                <strong style="color:var(--s)">Pago: L. ${fleteActivo.precio}</strong>
+                            </div>
+                            <div class="map-box">Vista de Ruta</div>
+                            <button class="btn" style="background:var(--s); color:white;" onclick="aceptar()">ACEPTAR FLETE</button>
+                            <button class="btn" style="background:#eee; color:#666;" onclick="rechazar()">RECHAZAR</button>
+                        </div>`;
+            }
+            else if (estadoMotorista === 'EN_TRANSITO') {
+                html = `<div class="driver-app" style="border-color:var(--acc)">
+                            <div class="status-msg" style="color:var(--acc)">VIAJE EN CURSO</div>
+                            <p>Estás entregando un <b>${fleteActivo.tipo}</b></p>
+                            <div style="background:#e0f2fe; padding:15px; border-radius:12px; border:1px solid var(--acc); text-align:left;">
+                                🏁 <b>Destino:</b> ${fleteActivo.des}
+                            </div>
+                            <div class="map-box" style="background:#cbd5e1; color:var(--p)">[NAVEGACIÓN GPS ACTIVA]</div>
+                            <button class="btn" style="background:var(--p); color:white;" onclick="finalizar()">FINALIZAR Y ENTREGAR</button>
+                            <p style="font-size:0.7rem; color:red; margin-top:10px;">⚠️ No puedes aceptar otros fletes mientras estás en tránsito.</p>
+                        </div>`;
+            }
+            stage.innerHTML = `<div class="driver-view">${html}</div>`;
+        }
+
+        // --- LÓGICA DE BOTONES ---
+        let temp = {};
+        function selT(tipo, ico, pies, carga, precio, el) {
+            document.querySelectorAll('.truck-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            temp = { tipo, ico, pies, carga, precio };
+        }
+
+        function pedir() {
+            const o = document.getElementById('ori').value;
+            const d = document.getElementById('des').value;
+            if(!temp.tipo || !o || !d) return alert("Selecciona camión y pon las rutas");
+            fleteActivo = { ...temp, ori: o, des: d, status: 'BUSCANDO...' };
+            estadoMotorista = 'RECIBIENDO';
+            alert("Pedido enviado. Notificando a motoristas cercanos...");
+        }
+
+        function aceptar() {
+            estadoMotorista = 'EN_TRANSITO';
+            fleteActivo.status = 'EN_TRANSITO';
+            alert("Flete Aceptado. Tu estado es: EN TRÁNSITO.");
+            show('driver');
+        }
+
+        function rechazar() {
+            fleteActivo = null;
+            estadoMotorista = 'LIBRE';
+            alert("Flete rechazado.");
+            show('driver');
+        }
+
+        function finalizar() {
+            alert("¡Flete entregado con éxito! Ahora estás libre.");
+            fleteActivo = null;
+            estadoMotorista = 'LIBRE';
+            show('driver');
+        }
+
+        // Carga inicial
+        window.onload = () => show('user');
+    </script>
+</body>
+</html>
