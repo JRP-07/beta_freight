@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Logística V2 | Gestión de Datos</title>
+    <style>
+        body { font-family: sans-serif; margin: 0; background: #f1f5f9; padding: 20px; }
+        .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+        .card-stat { background: white; padding: 20px; border-radius: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .main-table { margin-top: 20px; background: white; border-radius: 10px; padding: 20px; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 12px; background: #f8fafc; color: #64748b; }
+        td { padding: 12px; border-bottom: 1px solid #eee; }
+        .badge { background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 5px; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="card-stat"><h2>12</h2><p>Fletes hoy</p></div>
+        <div class="card-stat"><h2>4</h2><p>En camino</p></div>
+        <div class="card-stat"><h2>L. 45k</h2><p>Ingresos Est.</p></div>
+    </div>
+    <div class="main-table">
+        <h3>Detalle de Flota Activa</h3>
+        <table>
+            <thead><tr><th>ID</th><th>Tipo</th><th>Tamaño</th><th>Carga</th><th>Estado</th></tr></thead>
+            <tbody id="db-list-v2">
+                <tr><td>FF-88</td><td>Lowboy</td><td>53 pies</td><td>60 Ton</td><td><span class="badge">Asignado</span></td></tr>
+                </tbody>
+        </table>
+    </div>
+</body>
+</html>

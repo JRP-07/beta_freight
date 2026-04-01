@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Logística V3 | Dark Control</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #020617; color: #f8fafc; }
+        .layout { display: grid; grid-template-columns: 350px 1fr; height: 100vh; }
+        .sidebar-dark { background: #0f172a; padding: 20px; border-right: 1px solid #1e293b; overflow-y: auto; }
+        .map-dark { background: #1e293b; position: relative; }
+        .unit-card { background: #1e293b; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #334155; }
+        .unit-card:hover { border-color: #38bdf8; }
+        .status-dot { height: 8px; width: 8px; background: #22c55e; border-radius: 50%; display: inline-block; margin-right: 5px; }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <div class="sidebar-dark">
+            <h2>OPERACIONES</h2>
+            <div id="db-list-v3">
+                <div class="unit-card">
+                    <strong>🚛 Rastra 48'</strong><br>
+                    <small>ID: FF-229 | Conductor: Mario</small><br>
+                    <div style="margin-top:5px;"><span class="status-dot"></span><small>Transmitiendo GPS</small></div>
+                </div>
+                </div>
+        </div>
+        <div class="map-dark">
+            <div id="google-map-v3" style="height: 100%;">
+                </div>
+        </div>
+    </div>
+</body>
+</html>

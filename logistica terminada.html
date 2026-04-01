@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreightFynder | Centro de Control Logístico</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #0f172a;    /* Azul Oscuro Profundo */
+            --accent: #38bdf8;     /* Celeste Neón (Google Cloud Style) */
+            --success: #22c55e;    /* Verde para "En Ruta" */
+            --card-bg: #1e293b;    /* Fondo de tarjetas */
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            background-color: var(--primary);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* BARRA SUPERIOR (HEADER) */
+        header {
+            height: 60px;
+            background: var(--card-bg);
+            padding: 0 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #334155;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo { font-weight: 800; font-size: 1.4rem; letter-spacing: -1px; }
+        .logo span { color: var(--accent); }
+        
+        .system-status { font-size: 0.8rem; display: flex; align-items: center; gap: 8px; }
+        .pulse { height: 8px; width: 8px; background: var(--success); border-radius: 50%; animation: pulse-animation 2s infinite; }
+
+        @keyframes pulse-animation {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+
+        /* CUERPO PRINCIPAL */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 400px; /* Mapa a la izquierda, Info a la derecha */
+            flex: 1;
+        }
+
+        /* SECCIÓN DEL MAPA */
+        #map-global {
+            width: 100%;
+            height: 100%;
+            background: #020617; /* Fondo mientras carga el mapa */
+        }
+
+        /* PANEL DE DATOS LATERAL */
+        .side-panel {
+            background: var(--card-bg);
+            border-left: 1px solid #334155;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .section-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 10px;
+        }
+
+        /* TARJETAS DE PEDIDOS (INJECTADOS DESDE FIREBASE) */
+        .order-card {
+            background: var(--primary);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #334155;
+            transition: 0.3s;
+        }
+
+        .order-card:hover { border-color: var(--accent); transform: translateX(-5px); }
+
+        .order-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .order-id { font-weight: bold; color: var(--text-main); font-size: 0.9rem; }
+        .order-status { font-size: 0.7rem; padding: 2px 8px; border-radius: 4px; background: rgba(34, 197, 94, 0.2); color: var(--success); }
+
+        .specs-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+
+        .spec-item b { color: var(--text-main); }
+
+        /* FOOTER DE DATOS RÁPIDOS */
+        .stats-bar {
+            height: 40px;
+            background: #020617;
+            padding: 0 30px;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">FREIGHT<span>FYNDER</span> LOGISTICS</div>
+        <div class="system-status">
+            <div class="pulse"></div> 
+            Sincronizado con Google Cloud & Firebase
+        </div>
+    </header>
+
+    <div class="main-layout">
+        <div id="map-global">
+            </div>
+
+        <aside class="side-panel">
+            <div class="section-title">Monitor de Cargas Activas</div>
+            
+            <div id="realtime-orders">
+                <div class="order-card">
+                    <div class="order-header">
+                        <span class="order-id">#FF-2026-HND</span>
+                        <span class="order-status">EN RUTA</span>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <small style="color:var(--accent);">🚛 Rastra 48 Pies</small>
+                    </div>
+                    <div class="specs-grid">
+                        <div class="spec-item">Carga: <b>35 Ton</b></div>
+                        <div class="spec-item">Origen: <b>Progreso</b></div>
+                        <div class="spec-item">Destino: <b>SPS</b></div>
+                        <div class="spec-item">ETA: <b>45 min</b></div>
+                    </div>
+                </div>
+                </div>
+        </aside>
+    </div>
+
+    <div class="stats-bar">
+        <span>Unidades Activas: <b id="active-count">01</b></span>
+        <span>Alertas de Tráfico: <b>0</b></span>
+        <span>Firebase Latency: <b>24ms</b></span>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-bundle.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-bundle.js"></script>
+
+    <script>
+        // CONFIGURACIÓN DE TU PROYECTO FIREBASE
+        const firebaseConfig = {
+            apiKey: "TU_API_KEY_FIREBASE_AQUI",
+            authDomain: "tu-proyecto.firebaseapp.com",
+            databaseURL: "https://tu-proyecto.firebaseio.com",
+            projectId: "tu-proyecto-id",
+            storageBucket: "tu-proyecto.appspot.com",
+            messagingSenderId: "tu-id",
+            appId: "tu-app-id"
+        };
+
+        // INICIALIZACIÓN (Descomentar cuando pongas tus llaves)
+        // const app = firebase.initializeApp(firebaseConfig);
+        // const database = firebase.database();
+
+        // LÓGICA DE ESCUCHA EN TIEMPO REAL
+        /*
+        const pedidosRef = database.ref('pedidos');
+        pedidosRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            actualizarInterfaz(data);
+        });
+        */
+    </script>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=TU_API_KEY_AQUI&callback=initMap" async defer></script>
+
+    <script>
+        function initMap() {
+            // Mapa estilo "Dark Mode" para combinar con la interfaz
+            const mapOptions = {
+                zoom: 8,
+                center: { lat: 15.5, lng: -87.8 }, // Coordenadas de Honduras
+                styles: [
+                    { "elementType": "geometry", "stylers": [{ "color": "#242f3e" }] },
+                    { "elementType": "labels.text.fill", "stylers": [{ "color": "#746855" }] },
+                    { "featureType": "road", "elementType": "geometry", "stylers": [{ "color": "#38414e" }] },
+                    // ... puedes agregar más estilos dark aquí
+                ]
+            };
+            const map = new google.maps.Map(document.getElementById("map-global"), mapOptions);
+        }
+    </script>
+
+</body>
+</html>

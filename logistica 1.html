@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Logística| Mapa Expandido</title>
+    <style>
+        :root { --p: #0f172a; --a: #38bdf8; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: #f8fafc; height: 100vh; display: flex; flex-direction: column; }
+        header { background: var(--p); color: white; padding: 15px 30px; display: flex; justify-content: space-between; }
+        .main-grid { display: flex; flex: 1; position: relative; }
+        
+        /* Mapa ocupa casi todo */
+        #google-map-v1 { flex: 1; background: #e2e8f0; }
+        
+        /* Panel flotante de órdenes */
+        .floating-panel { position: absolute; top: 20px; right: 20px; width: 320px; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 15px; max-height: 80%; overflow-y: auto; }
+        .order-min { border-left: 4px solid var(--a); padding: 10px; margin-bottom: 10px; background: #f1f5f9; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <strong>FREIGHTFYNDER LOGISTICS</strong>
+        <span>Monitor Global</span>
+    </header>
+    <div class="main-grid">
+        <div id="google-map-v1">
+            </div>
+        <div class="floating-panel">
+            <h3>Órdenes Activas</h3>
+            <div id="db-list-v1">
+                <div class="order-min"><strong>FF-102</strong>: Contenedor 40' <br> <small>Ruta: Cortés ➔ Progreso</small></div>
+                </div>
+        </div>
+    </div>
+    </body>
+</html>
