@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FF | Cliente</title>
+    <style>
+        body { font-family: sans-serif; margin: 0; display: flex; height: 100vh; background: #f0f2f5; }
+        /* SIDEBAR FIJO */
+        aside { width: 250px; background: #1a2a6c; color: white; padding: 20px; }
+        .camion { padding: 15px; border: 1px solid white; margin-bottom: 10px; border-radius: 8px; cursor: pointer; text-align: center; }
+        .camion:hover { background: #f2a900; color: #1a2a6c; }
+        /* CONTENIDO */
+        main { flex: 1; padding: 40px; }
+        .caja { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; }
+        #mapa-cliente { height: 300px; background: #ddd; margin-top: 20px; border-radius: 8px; }
+    </style>
+</head>
+<body>
+
+<aside>
+    <h3>FREIGHTFYNDER</h3>
+    <p>Elige tu unidad:</p>
+    <div class="camion">📦 Contenedor</div>
+    <div class="camion">🚛 Rastra</div>
+    <div class="camion">🚐 Furgón</div>
+    <div class="camion">🚜 Lowboy</div>
+</aside>
+
+<main>
+    <div class="caja">
+        <h2>Nuevo Pedido</h2>
+        <input type="text" placeholder="¿Dónde recogemos?">
+        <input type="text" placeholder="¿A dónde enviamos?">
+        <button style="width:100%; padding:15px; background:#f2a900; border:none; cursor:pointer; font-weight:bold;">SOLICITAR FLETE</button>
+        
+        <div id="mapa-cliente">
+            </div>
+    </div>
+</main>
+
+<script>
+    // ##########################################
+    // ESPACIO PARA API DE FIREBASE (BASE DE DATOS)
+    // RECOGE TU CODIGO EN: firebase.google.com
+    // ##########################################
+</script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=TU_API_KEY_AQUI"></script>
+</body>
+</html>

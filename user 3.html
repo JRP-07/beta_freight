@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>FreightFynder | Cotización Beta</title>
+    <style>
+        :root { --p: #1a2a6c; --a: #f2a900; --s: #27ae60; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; background: #f1f5f9; }
+        
+        /* SIDEBAR */
+        aside { width: 260px; background: white; padding: 20px; border-right: 1px solid #ddd; display: flex; flex-direction: column; gap: 10px; }
+        .truck-opt { padding: 15px; border: 2px solid #eee; border-radius: 10px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 10px; }
+        .truck-opt:hover { border-color: var(--p); }
+        .selected { border-color: var(--a); background: #fffcf0; font-weight: bold; }
+
+        /* MAIN CONTENT */
+        main { flex: 1; padding: 40px; overflow-y: auto; }
+        .form-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        
+        /* ESPACIO DE DATOS ESTIMADOS */
+        #info-seleccion { 
+            margin-bottom: 20px; 
+            padding: 20px; 
+            border-radius: 10px; 
+            background: #f8faff; 
+            border: 1px solid #d1d9e6;
+            display: none; 
+            animation: fadeIn 0.4s ease;
+        }
+        .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; font-size: 0.9rem; }
+        .data-item { color: #555; }
+        .price { color: var(--s); font-weight: bold; font-size: 1.1rem; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
+        .btn-order { width: 100%; padding: 15px; background: var(--a); color: var(--p); border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; }
+        #map { height: 300px; background: #e2e8f0; border-radius: 12px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<aside id="sidebar">
+    <h2 style="color:var(--p)">FreightFynder</h2>
+    <p style="font-size: 0.8rem; color: #666;">Seleccione el tipo de flete:</p>
+    <div class="truck-opt" onclick="selectTruck('Contenedor', '📦', 1500, '45 min')">📦 Contenedor</div>
+    <div class="truck-opt" onclick="selectTruck('Rastra', '🚛', 2200, '60 min')">🚛 Rastra</div>
+    <div class="truck-opt" onclick="selectTruck('Furgón', '🚐', 1200, '30 min')">🚐 Furgón</div>
+    <div class="truck-opt" onclick="selectTruck('Lowboy', '🚜', 3500, '90 min')">🚜 Lowboy</div>
+</aside>
+
+<main>
+    <div class="form-card">
+        <div id="info-seleccion">
+            <div style="font-weight: bold; color: var(--p); border-bottom: 1px solid #eee; padding-bottom: 5px;">
+                Resumen de Solicitud: <span id="nombre-camion"></span>
+            </div>
+            <div class="data-grid">
+                <div class="data-item">Tarifa Base Est.: <span class="price" id="est-precio">L. 0.00</span></div>
+                <div class="data-item">Tiempo de Carga Est.: <span id="est-tiempo">--</span></div>
+                <div class="data-item">Disponibilidad: <span style="color:var(--s)">Inmediata</span></div>
+                <div class="data-item">Seguro de Carga: <span>Incluido</span></div>
+            </div>
+        </div>
+
+        <input type="text" id="ori" placeholder="📍 Punto de origen">
+        <input type="text" id="des" placeholder="🏁 Punto de destino">
+        
+        <button class="btn-order" onclick="enviarAFirebase()">
+            CONFIRMAR PEDIDO
+        </button>
+        
+        <div id="map"></div>
+    </div>
+</main>
+
+<script>
+  // FUNCIÓN PARA ACTUALIZAR DATOS ESTIMADOS
+  function selectTruck(nombre, icono, precio, tiempo) {
+    // 1. Efecto visual en Sidebar
+    document.querySelectorAll('.truck-opt').forEach(opt => opt.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+
+    // 2. Mostrar espacio y llenar datos
+    document.getElementById('info-seleccion').style.display = "block";
+    document.getElementById('nombre-camion').innerHTML = icono + " " + nombre;
+    document.getElementById('est-precio').innerHTML = "L. " + precio.toLocaleString();
+    document.getElementById('est-tiempo').innerHTML = tiempo;
+  }
+
+  // ##########################################
+  // ESPACIO PARA API DE FIREBASE (BASE DE DATOS)
+  // ##########################################
+  const firebaseConfig = {
+    apiKey: "TU_API_KEY_FIREBASE",
+    databaseURL: "https://tu-proyecto.firebaseio.com",
+    projectId: "tu-proyecto-id",
+  };
+
+  function enviarAFirebase() {
+      alert("Enviando pedido con los datos estimados a la base de datos...");
+  }
+</script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=TU_API_KEY_MAPS" async defer></script>
+
+</body>
+</html>

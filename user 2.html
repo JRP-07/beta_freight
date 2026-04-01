@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>FreightFynder | Cliente</title>
+    <style>
+        :root { --p: #1a2a6c; --a: #f2a900; }
+        body { font-family: sans-serif; margin: 0; display: flex; height: 100vh; background: #f1f5f9; }
+        
+        /* SIDEBAR */
+        aside { width: 260px; background: white; padding: 20px; border-right: 1px solid #ddd; }
+        .truck-opt { padding: 15px; border: 2px solid #eee; border-radius: 10px; cursor: pointer; margin-bottom: 10px; transition: 0.3s; }
+        .truck-opt:hover { border-color: var(--p); }
+        .selected { border-color: var(--a); background: #fffcf0; font-weight: bold; }
+
+        /* MAIN CONTENT */
+        main { flex: 1; padding: 40px; }
+        .form-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        
+        /* ESPACIO DE LA SELECCIÓN */
+        #info-seleccion { 
+            margin-bottom: 20px; 
+            padding: 15px; 
+            border-radius: 10px; 
+            background: #eef2ff; 
+            border-left: 5px solid var(--p);
+            display: none; /* Se muestra solo al seleccionar */
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
+        #map { height: 350px; background: #e2e8f0; border-radius: 12px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<aside id="sidebar">
+    <h2 style="color:var(--p)">FreightFynder</h2>
+    <p style="font-size: 0.8rem; color: #666;">Selecciona tu unidad:</p>
+    <div class="truck-opt" onclick="selectTruck('Contenedor', '📦', this)">📦 Contenedor</div>
+    <div class="truck-opt" onclick="selectTruck('Rastra', '🚛', this)">🚛 Rastra</div>
+    <div class="truck-opt" onclick="selectTruck('Furgón', '🚐', this)">🚐 Furgón</div>
+    <div class="truck-opt" onclick="selectTruck('Lowboy', '🚜', this)">🚜 Lowboy</div>
+</aside>
+
+<main>
+    <div class="form-card">
+        <div id="info-seleccion">
+            <span>Vehículo seleccionado: </span>
+            <strong id="nombre-camion">Ninguno</strong>
+        </div>
+
+        <input type="text" id="ori" placeholder="📍 Origen de recogida">
+        <input type="text" id="des" placeholder="🏁 Destino de entrega">
+        
+        <button onclick="enviarAFirebase()" style="width:100%; padding:15px; background:var(--a); border:none; font-weight:bold; cursor:pointer; border-radius: 8px; color: var(--p);">
+            SOLICITAR FLETE
+        </button>
+        
+        <div id="map"></div>
+    </div>
+</main>
+
+<script>
+  let camionSeleccionado = "";
+
+  // FUNCIÓN PARA HACER EL ESPACIO DE LA SELECCIÓN
+  function selectTruck(nombre, icono, elemento) {
+    camionSeleccionado = nombre;
+
+    // 1. Marcar visualmente el Sidebar
+    document.querySelectorAll('.truck-opt').forEach(opt => opt.classList.remove('selected'));
+    elemento.classList.add('selected');
+
+    // 2. Mostrar y actualizar el espacio de información
+    const infoBox = document.getElementById('info-seleccion');
+    const txtCamion = document.getElementById('nombre-camion');
+    
+    infoBox.style.display = "block";
+    txtCamion.innerHTML = icono + " " + nombre;
+  }
+
+  // --- CONFIGURACIÓN DE FIREBASE ---
+  const firebaseConfig = {
+    apiKey: "TU_API_KEY_FIREBASE",
+    authDomain: "tu-proyecto.firebaseapp.com",
+    databaseURL: "https://tu-proyecto.firebaseio.com",
+    projectId: "tu-proyecto-id",
+    storageBucket: "tu-proyecto.appspot.com",
+    messagingSenderId: "tu-id",
+    appId: "tu-app-id"
+  };
+  // Inicializar aquí tus variables de base de datos
+</script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=TU_API_KEY_MAPS&callback=initMap" async defer></script>
+
+</body>
+</html>
